@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import authRoutes from './routes/auth';
 import journalRoutes from './routes/journal';
+import chatRoutes from './routes/chat';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ mongoose.connect(MONGODB_URI)
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Repose of Mind API' });

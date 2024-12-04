@@ -4,6 +4,9 @@ import { Navbar } from './components/layout/Navbar';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
 import { Journal } from './components/journal/Journal';
+import { Home } from './components/home/Home';
+import { Chat } from './components/chat/Chat';
+import { MoodTracking } from './components/mood/MoodTracking';
 
 function App() {
   return (
@@ -13,12 +16,12 @@ function App() {
           <Navbar />
           <main>
             <Routes>
-              <Route path="/" element={<div>Home</div>} />
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/journal" element={<Journal />} />
-              <Route path="/chat" element={<div>Chat</div>} />
-              <Route path="/mood" element={<div>Mood Tracking</div>} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/mood" element={<MoodTracking />} />
             </Routes>
           </main>
         </div>
