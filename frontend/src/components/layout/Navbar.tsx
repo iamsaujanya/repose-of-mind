@@ -1,9 +1,26 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../theme-provider';
 import { Moon, Sun } from 'lucide-react';
+import { Profile } from '../auth/Profile';
 
 export function Navbar() {
   const { theme, setTheme } = useTheme();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+
+    // Listen for login/logout events
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   return (
     <nav className="border-b">
@@ -29,12 +46,16 @@ export function Navbar() {
               )}
             </button>
             
-            <Link
-              to="/login"
-              className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              Login
-            </Link>
+            {isLoggedIn ? (
+              <Profile />
+            ) : (
+              <Link
+                to="/login"
+                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>

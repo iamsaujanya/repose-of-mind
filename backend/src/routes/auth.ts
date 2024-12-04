@@ -1,8 +1,62 @@
 import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User';
 
 const router = express.Router();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Google Sign-In
+router.post('/google', async (req: Request, res: Response) => {
+  try {
+    const { credential } = req.body;
+
+    // Verify Google token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new Error('Invalid Google token');
+    }
+
+    const { email, name, sub: googleId } = payload;
+
+    // Find or create user
+    let user = await User.findOne({ email: email?.toLowerCase() });
+
+    if (!user) {
+      user = new User({
+        email: email?.toLowerCase(),
+        name,
+        googleId,
+        password: Math.random().toString(36).slice(-8), // Random password for Google users
+      });
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '7d' }
+    );
+
+    return res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error: any) {
+    console.error('Google sign-in error:', error);
+    return res.status(401).json({ error: 'Failed to authenticate with Google' });
+  }
+});
 
 // Register
 router.post('/register', async (req: Request, res: Response) => {
