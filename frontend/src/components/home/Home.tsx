@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calendar, MessageCircle, Moon, Sun, Heart, Target, Youtube } from 'lucide-react';
+import { Calendar, MessageCircle, Moon, Sun, Heart, Youtube } from 'lucide-react';
 
 export function Home() {
   return (
@@ -75,16 +75,6 @@ export function Home() {
               <p className="text-muted-foreground">
                 Access curated meditation, breathing exercises, and mindfulness
                 videos to support your mental wellness journey.
-              </p>
-            </div>
-
-            {/* Daily Goals */}
-            <div className="p-6 bg-card rounded-lg shadow-lg">
-              <Target className="w-12 h-12 mb-4 text-primary" />
-              <h3 className="text-xl font-semibold mb-2">Daily Goals</h3>
-              <p className="text-muted-foreground">
-                Set and track personal goals, building healthy habits one day at a
-                time with progress tracking.
               </p>
             </div>
           </div>

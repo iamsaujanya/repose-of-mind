@@ -11,6 +11,7 @@ import { Privacy } from './components/pages/Privacy';
 import { Terms } from './components/pages/Terms';
 import { Mindfulness } from './components/mindfulness/Mindfulness';
 import { Settings } from './components/settings/Settings';
+import { DailyGoals } from './components/goals/DailyGoals';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/goals" element={<DailyGoals />} />
             </Routes>
           </main>
           <Footer />

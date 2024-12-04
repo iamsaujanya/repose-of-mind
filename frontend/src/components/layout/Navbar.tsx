@@ -34,6 +34,7 @@ export function Navbar() {
             <Link to="/journal" className="hover:text-primary">Journal</Link>
             <Link to="/chat" className="hover:text-primary">Chat</Link>
             <Link to="/mindfulness" className="hover:text-primary">Mindfulness</Link>
+            <Link to="/goals" className="hover:text-primary">Goals</Link>
             
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
