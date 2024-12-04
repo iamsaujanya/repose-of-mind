@@ -56,8 +56,31 @@ router.post('/message', auth, async (req: Request, res: Response) => {
     chat.messages.push(userMessage);
 
     try {
-      // Get bot response
-      const botResponse = await geminiService.generateResponse(content);
+      // Get bot response with retry logic
+      let botResponse: string | null = null;
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      while (!botResponse && attempts < maxAttempts) {
+        try {
+          botResponse = await geminiService.generateResponse(content);
+          if (!botResponse || !botResponse.trim()) {
+            throw new Error('Empty response received');
+          }
+        } catch (error) {
+          attempts++;
+          if (attempts === maxAttempts) {
+            throw error;
+          }
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts)));
+        }
+      }
+
+      if (!botResponse) {
+        throw new Error('Failed to generate response after retries');
+      }
+
       const botMessage = {
         content: botResponse,
         sender: 'bot' as const,
@@ -71,11 +94,23 @@ router.post('/message', auth, async (req: Request, res: Response) => {
       // If Gemini API fails, save only the user message
       await chat.save();
       console.error('Error generating bot response:', error);
+
+      // Check for specific error types
+      let errorMessage = "I apologize, but I'm having trouble responding right now. Please try again in a moment.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API key') || error.message.includes('not properly configured')) {
+          errorMessage = "I'm currently experiencing technical difficulties. Please contact the administrator.";
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = "I'm receiving too many requests right now. Please wait a moment before trying again.";
+        }
+      }
+
       return res.status(500).json({
         error: 'Failed to generate response',
         userMessage,
         botMessage: {
-          content: "I apologize, but I'm having trouble responding right now. Please try again in a moment.",
+          content: errorMessage,
           sender: 'bot',
           timestamp: new Date(),
         },
