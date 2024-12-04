@@ -1,6 +1,7 @@
 import { useState, useEffect, ChangeEvent } from 'react';
-import { format } from 'date-fns';
-import { Calendar, Plus, Target, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { Calendar, Plus, Target, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,36 +23,48 @@ interface NewGoal {
   date: string;
 }
 
+// Function to get IST date string
+const getISTDateString = () => {
+  const istDate = utcToZonedTime(new Date(), 'Asia/Kolkata');
+  return format(istDate, 'yyyy-MM-dd');
+};
+
+// Function to format IST date for display
+const formatISTDate = (date: string) => {
+  const istDate = utcToZonedTime(parseISO(date), 'Asia/Kolkata');
+  return format(istDate, 'EEEE, MMMM d, yyyy');
+};
+
 const DEFAULT_GOALS = [
   {
     title: 'Morning Meditation',
     description: 'Start your day with 10 minutes of mindful meditation',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   },
   {
     title: 'Exercise',
     description: '30 minutes of physical activity',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   },
   {
     title: 'Gratitude Journal',
     description: 'Write down three things you are grateful for today',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   },
   {
     title: 'Healthy Breakfast',
     description: 'Start your day with a nutritious meal',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   },
   {
     title: 'Reading',
     description: 'Read for at least 20 minutes',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   },
   {
     title: 'Water Intake',
     description: 'Drink 8 glasses of water throughout the day',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   }
 ];
 
@@ -61,9 +74,31 @@ export function DailyGoals() {
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: '',
     description: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    date: '',
   });
   const [error, setError] = useState('');
+  const [currentDate, setCurrentDate] = useState(getISTDateString());
+
+  useEffect(() => {
+    // Update current date and default goals
+    const istDate = getISTDateString();
+    setCurrentDate(istDate);
+    DEFAULT_GOALS.forEach(goal => {
+      goal.date = istDate;
+    });
+    setNewGoal(prev => ({ ...prev, date: istDate }));
+
+    // Set up interval to check and update date every minute
+    const interval = setInterval(() => {
+      const newDate = getISTDateString();
+      if (newDate !== currentDate) {
+        setCurrentDate(newDate);
+        fetchGoals(); // Refresh goals if date has changed
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchGoals = async () => {
     try {
@@ -88,12 +123,12 @@ export function DailyGoals() {
       }
 
       const data = await response.json();
-      const today = format(new Date(), 'yyyy-MM-dd');
       
-      // Filter out any goals that aren't from today
-      const todaysGoals = data.filter((goal: DailyGoal) => 
-        format(new Date(goal.date), 'yyyy-MM-dd') === today
-      );
+      // Filter goals for today (IST)
+      const todaysGoals = data.filter((goal: DailyGoal) => {
+        const goalDate = format(utcToZonedTime(parseISO(goal.date), 'Asia/Kolkata'), 'yyyy-MM-dd');
+        return goalDate === currentDate;
+      });
 
       if (todaysGoals.length === 0) {
         // If no goals exist for today, create default goals
@@ -105,7 +140,10 @@ export function DailyGoals() {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify(goal),
+              body: JSON.stringify({
+                ...goal,
+                date: zonedTimeToUtc(new Date(currentDate), 'Asia/Kolkata').toISOString(),
+              }),
             }).then(res => res.json())
           ));
           setGoals(createdGoals);
@@ -140,8 +178,10 @@ export function DailyGoals() {
   };
 
   useEffect(() => {
-    fetchGoals();
-  }, []);
+    if (currentDate) {
+      fetchGoals();
+    }
+  }, [currentDate]);
 
   const handleAddGoal = async () => {
     if (newGoal.description.split(' ').length > 50) {
@@ -156,7 +196,10 @@ export function DailyGoals() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify(newGoal),
+        body: JSON.stringify({
+          ...newGoal,
+          date: zonedTimeToUtc(new Date(currentDate), 'Asia/Kolkata').toISOString(),
+        }),
       });
 
       if (!response.ok) throw new Error('Failed to add goal');
@@ -165,7 +208,7 @@ export function DailyGoals() {
       setNewGoal({
         title: '',
         description: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
+        date: currentDate,
       });
       fetchGoals();
     } catch (err) {
@@ -214,10 +257,15 @@ export function DailyGoals() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Target className="h-6 w-6" />
-          Daily Goals
-        </h2>
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Target className="h-6 w-6" />
+            Daily Goals
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formatISTDate(currentDate)} (IST)
+          </p>
+        </div>
         <Dialog open={isAddingGoal} onOpenChange={setIsAddingGoal}>
           <DialogTrigger asChild>
             <Button>
@@ -240,12 +288,6 @@ export function DailyGoals() {
                 name="description"
                 placeholder="Description (max 50 words)"
                 value={newGoal.description}
-                onChange={handleInputChange}
-              />
-              <Input
-                name="date"
-                type="date"
-                value={newGoal.date}
                 onChange={handleInputChange}
               />
               <Button onClick={handleAddGoal}>Add Goal</Button>
@@ -290,7 +332,7 @@ export function DailyGoals() {
                 )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(goal.date), 'MMM d, yyyy')}
+                  {formatISTDate(goal.date)}
                 </div>
               </div>
             </div>

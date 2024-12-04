@@ -3,6 +3,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2, Smile, Frown, Meh, Brain, PartyPopper } from 'lucide-react';
+import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 
 type JournalEntry = {
   _id: string;
@@ -130,14 +132,14 @@ export function Journal() {
 
   const getEntriesForDate = (date: Date) => {
     return entries.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      const compareDate = new Date(date);
+      const entryDate = utcToZonedTime(new Date(entry.date), 'Asia/Kolkata');
+      const compareDate = utcToZonedTime(date, 'Asia/Kolkata');
       
-      // Set both dates to noon to avoid timezone issues
-      entryDate.setHours(12, 0, 0, 0);
-      compareDate.setHours(12, 0, 0, 0);
-      
-      return entryDate.getTime() === compareDate.getTime();
+      return (
+        entryDate.getFullYear() === compareDate.getFullYear() &&
+        entryDate.getMonth() === compareDate.getMonth() &&
+        entryDate.getDate() === compareDate.getDate()
+      );
     });
   };
 
@@ -301,27 +303,16 @@ export function Journal() {
           ) : selectedEntries.length > 0 ? (
             <div className="space-y-4">
               {selectedEntries.map((entry) => (
-                <div
-                  key={entry._id}
-                  className="p-4 bg-card rounded-lg shadow-lg space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">{entry.title}</h3>
-                    <div className={`${getMoodColor(entry.mood)}`}>
-                      {getMoodIcon(entry.mood)}
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground whitespace-pre-wrap">
-                    {entry.content}
+                <div key={entry._id} className="bg-card p-4 rounded-lg shadow-lg mb-4">
+                  <h3 className="text-xl font-semibold mb-2">{entry.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {format(utcToZonedTime(new Date(entry.date), 'Asia/Kolkata'), 'PPpp')}
                   </p>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span className="flex items-center gap-2">
-                      Mood: <span className={getMoodColor(entry.mood)}>{entry.mood}</span>
-                    </span>
-                    <span>
-                      {new Date(entry.date).toLocaleTimeString()}
-                    </span>
+                  <div className={`flex items-center gap-2 mb-2 ${getMoodColor(entry.mood)}`}>
+                    {getMoodIcon(entry.mood)}
+                    <span className="capitalize">{entry.mood}</span>
                   </div>
+                  <p className="whitespace-pre-wrap">{entry.content}</p>
                 </div>
               ))}
             </div>

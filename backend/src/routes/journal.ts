@@ -28,14 +28,11 @@ router.post('/', auth, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Title and content are required' });
     }
 
-    // Ensure date is a valid Date object
+    // Use current time if no date provided, otherwise parse the provided date
     const entryDate = date ? new Date(date) : new Date();
     if (isNaN(entryDate.getTime())) {
       return res.status(400).json({ error: 'Invalid date format' });
     }
-
-    // Set time to noon to avoid timezone issues
-    entryDate.setHours(12, 0, 0, 0);
 
     const entry = new Journal({
       userId: req.user._id,
@@ -118,7 +115,6 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Title and content are required' });
     }
 
-    // Ensure date is a valid Date object if provided
     let updateData: any = {
       title: title.trim(),
       content: content.trim(),
@@ -130,7 +126,6 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
       if (isNaN(entryDate.getTime())) {
         return res.status(400).json({ error: 'Invalid date format' });
       }
-      entryDate.setHours(12, 0, 0, 0);
       updateData.date = entryDate;
     }
 

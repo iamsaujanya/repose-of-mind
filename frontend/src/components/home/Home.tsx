@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calendar, MessageCircle, Moon, Sun, Heart, Youtube } from 'lucide-react';
+import { Calendar, MessageCircle, Moon, Sun, Heart, Youtube, CheckSquare } from 'lucide-react';
 
 export function Home() {
   return (
@@ -32,6 +32,16 @@ export function Home() {
               <p className="text-muted-foreground">
                 Document your thoughts and feelings with our intuitive journaling system.
                 Track your entries by date and mood, all synchronized with IST.
+              </p>
+            </div>
+
+            {/* Daily Goals Feature */}
+            <div className="p-6 bg-card rounded-lg shadow-lg">
+              <CheckSquare className="w-12 h-12 mb-4 text-primary" />
+              <h3 className="text-xl font-semibold mb-2">Daily Goals</h3>
+              <p className="text-muted-foreground">
+                Set and track your daily wellness goals. Stay motivated with our
+                progress tracking system and build healthy habits.
               </p>
             </div>
 
