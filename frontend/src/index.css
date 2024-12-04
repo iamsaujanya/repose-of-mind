@@ -74,3 +74,81 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Calendar Dark Mode Styles */
+.calendar-wrapper .react-calendar {
+  @apply bg-transparent border-none font-sans;
+}
+
+.calendar-wrapper .react-calendar__navigation button {
+  @apply text-foreground min-w-[44px] bg-transparent hover:bg-accent rounded-md;
+}
+
+.calendar-wrapper .react-calendar__navigation button:disabled {
+  @apply bg-transparent opacity-50;
+}
+
+.calendar-wrapper .react-calendar__month-view__weekdays {
+  @apply text-muted-foreground font-medium;
+}
+
+.calendar-wrapper .react-calendar__month-view__days__day {
+  @apply text-foreground hover:bg-accent rounded-md;
+}
+
+.calendar-wrapper .react-calendar__month-view__days__day--weekend {
+  @apply text-destructive;
+}
+
+.calendar-wrapper .react-calendar__month-view__days__day--neighboringMonth {
+  @apply text-muted-foreground;
+}
+
+.calendar-wrapper .react-calendar__tile {
+  @apply text-foreground hover:bg-accent rounded-md;
+}
+
+.calendar-wrapper .react-calendar__tile:disabled {
+  @apply bg-transparent text-muted-foreground;
+}
+
+.calendar-wrapper .react-calendar__tile--now {
+  @apply bg-accent text-accent-foreground;
+}
+
+.calendar-wrapper .react-calendar__tile--active {
+  @apply bg-primary text-primary-foreground;
+}
+
+.calendar-wrapper .react-calendar__tile--hasActive {
+  @apply bg-primary text-primary-foreground;
+}
+
+/* Footer Styles */
+.footer {
+  @apply mt-auto py-8 bg-card border-t;
+}
+
+.footer-content {
+  @apply container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8;
+}
+
+.footer-section {
+  @apply space-y-4;
+}
+
+.footer-section h3 {
+  @apply text-lg font-semibold;
+}
+
+.footer-section ul {
+  @apply space-y-2;
+}
+
+.footer-section a {
+  @apply text-muted-foreground hover:text-foreground transition-colors;
+}
+
+.footer-bottom {
+  @apply mt-8 pt-4 border-t text-center text-muted-foreground;
+}

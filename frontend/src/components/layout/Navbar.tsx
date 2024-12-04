@@ -16,7 +16,6 @@ export function Navbar() {
           <div className="flex items-center space-x-6">
             <Link to="/journal" className="hover:text-primary">Journal</Link>
             <Link to="/chat" className="hover:text-primary">Chat</Link>
-            <Link to="/mood" className="hover:text-primary">Mood</Link>
             
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

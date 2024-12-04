@@ -5,7 +5,7 @@ export interface IJournal extends mongoose.Document {
   title: string;
   content: string;
   mood: 'happy' | 'sad' | 'neutral' | 'anxious' | 'excited';
-  tags: string[];
+  date: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,10 +30,11 @@ const journalSchema = new mongoose.Schema({
     enum: ['happy', 'sad', 'neutral', 'anxious', 'excited'],
     required: true,
   },
-  tags: [{
-    type: String,
-    trim: true,
-  }],
+  date: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -49,5 +50,8 @@ journalSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
 });
+
+// Add index for faster queries
+journalSchema.index({ userId: 1, date: -1 });
 
 export const Journal = mongoose.model<IJournal>('Journal', journalSchema); 

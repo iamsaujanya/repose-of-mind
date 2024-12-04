@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useNavigate } from 'react-router-dom';
+import { AlertCircle, Loader2, Smile, Frown, Meh, Brain, PartyPopper } from 'lucide-react';
 
 type JournalEntry = {
   _id: string;
@@ -11,6 +12,21 @@ type JournalEntry = {
   date: string;
 };
 
+type MoodOption = {
+  value: string;
+  label: string;
+  icon: JSX.Element;
+  color: string;
+};
+
+const moodOptions: MoodOption[] = [
+  { value: 'happy', label: 'Happy', icon: <Smile className="w-5 h-5" />, color: 'text-green-500' },
+  { value: 'sad', label: 'Sad', icon: <Frown className="w-5 h-5" />, color: 'text-blue-500' },
+  { value: 'neutral', label: 'Neutral', icon: <Meh className="w-5 h-5" />, color: 'text-yellow-500' },
+  { value: 'anxious', label: 'Anxious', icon: <Brain className="w-5 h-5" />, color: 'text-red-500' },
+  { value: 'excited', label: 'Excited', icon: <PartyPopper className="w-5 h-5" />, color: 'text-purple-500' },
+];
+
 export function Journal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -19,6 +35,7 @@ export function Journal() {
   const [mood, setMood] = useState('neutral');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +79,8 @@ export function Journal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -104,6 +123,8 @@ export function Journal() {
     } catch (err: any) {
       console.error('Error creating entry:', err);
       setError(err.message || 'Failed to save entry. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -120,24 +141,72 @@ export function Journal() {
     });
   };
 
+  const getMoodStats = () => {
+    const stats = {
+      happy: 0,
+      sad: 0,
+      neutral: 0,
+      anxious: 0,
+      excited: 0,
+    };
+
+    entries.forEach((entry) => {
+      stats[entry.mood as keyof typeof stats]++;
+    });
+
+    return stats;
+  };
+
+  const getMoodIcon = (moodValue: string) => {
+    return moodOptions.find(option => option.value === moodValue)?.icon || moodOptions[2].icon;
+  };
+
+  const getMoodColor = (moodValue: string) => {
+    return moodOptions.find(option => option.value === moodValue)?.color || '';
+  };
+
   const selectedEntries = getEntriesForDate(selectedDate);
+  const moodStats = getMoodStats();
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <h2 className="text-2xl font-bold mb-4">Journal Entries</h2>
-          <Calendar
-            onChange={setSelectedDate}
-            value={selectedDate}
-            className="w-full bg-card p-4 rounded-lg shadow-lg"
-            tileContent={({ date }) => {
-              const dayEntries = getEntriesForDate(date);
-              return dayEntries.length > 0 ? (
-                <div className="w-2 h-2 bg-primary rounded-full mx-auto mt-1" />
-              ) : null;
-            }}
-          />
+          <div className="calendar-wrapper bg-card p-4 rounded-lg shadow-lg">
+            <Calendar
+              onChange={setSelectedDate}
+              value={selectedDate}
+              className="w-full !bg-transparent border-none"
+              tileContent={({ date }) => {
+                const dayEntries = getEntriesForDate(date);
+                if (dayEntries.length === 0) return null;
+                const entry = dayEntries[0];
+                return (
+                  <div className={`mt-1 ${getMoodColor(entry.mood)}`}>
+                    {getMoodIcon(entry.mood)}
+                  </div>
+                );
+              }}
+              tileClassName={({ date }) => {
+                const isSelected = selectedDate.toDateString() === date.toDateString();
+                return `${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'} rounded-lg`;
+              }}
+            />
+          </div>
+
+          <div className="mt-8 bg-card p-4 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Mood Summary</h3>
+            <div className="grid grid-cols-5 gap-4">
+              {moodOptions.map((option) => (
+                <div key={option.value} className="text-center">
+                  <div className={`${option.color} mb-2`}>{option.icon}</div>
+                  <div className="text-2xl font-bold">{moodStats[option.value as keyof typeof moodStats]}</div>
+                  <div className="text-xs text-muted-foreground">{option.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             <div>
@@ -151,6 +220,8 @@ export function Journal() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full p-2 rounded-md border bg-background"
                 required
+                disabled={isSubmitting}
+                placeholder="Enter a title for your entry"
               />
             </div>
 
@@ -162,34 +233,52 @@ export function Journal() {
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full p-2 rounded-md border bg-background h-32"
+                className="w-full p-2 rounded-md border bg-background h-32 resize-none"
                 required
+                disabled={isSubmitting}
+                placeholder="Write your thoughts here..."
               />
             </div>
 
             <div>
-              <label htmlFor="mood" className="block text-sm font-medium mb-1">
-                Mood
+              <label className="block text-sm font-medium mb-2">
+                How are you feeling?
               </label>
-              <select
-                id="mood"
-                value={mood}
-                onChange={(e) => setMood(e.target.value)}
-                className="w-full p-2 rounded-md border bg-background"
-              >
-                <option value="happy">Happy</option>
-                <option value="sad">Sad</option>
-                <option value="neutral">Neutral</option>
-                <option value="anxious">Anxious</option>
-                <option value="excited">Excited</option>
-              </select>
+              <div className="grid grid-cols-5 gap-2">
+                {moodOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setMood(option.value)}
+                    className={`p-3 rounded-md flex flex-col items-center gap-1 ${
+                      mood === option.value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card hover:bg-accent'
+                    }`}
+                    disabled={isSubmitting}
+                  >
+                    <div className={mood === option.value ? 'text-primary-foreground' : option.color}>
+                      {option.icon}
+                    </div>
+                    <span className="text-xs">{option.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={isSubmitting}
             >
-              Save Entry
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Entry'
+              )}
             </button>
           </form>
         </div>
@@ -199,12 +288,16 @@ export function Journal() {
             Entries for {selectedDate.toLocaleDateString()}
           </h2>
           {error && (
-            <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md mb-4">
+            <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md flex items-center gap-2 mb-4">
+              <AlertCircle className="w-4 h-4" />
               {error}
             </div>
           )}
           {loading ? (
-            <p>Loading...</p>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading entries...
+            </div>
           ) : selectedEntries.length > 0 ? (
             <div className="space-y-4">
               {selectedEntries.map((entry) => (
@@ -212,12 +305,19 @@ export function Journal() {
                   key={entry._id}
                   className="p-4 bg-card rounded-lg shadow-lg space-y-2"
                 >
-                  <h3 className="text-lg font-semibold">{entry.title}</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">{entry.title}</h3>
+                    <div className={`${getMoodColor(entry.mood)}`}>
+                      {getMoodIcon(entry.mood)}
+                    </div>
+                  </div>
                   <p className="text-muted-foreground whitespace-pre-wrap">
                     {entry.content}
                   </p>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Mood: {entry.mood}</span>
+                    <span className="flex items-center gap-2">
+                      Mood: <span className={getMoodColor(entry.mood)}>{entry.mood}</span>
+                    </span>
                     <span>
                       {new Date(entry.date).toLocaleTimeString()}
                     </span>
