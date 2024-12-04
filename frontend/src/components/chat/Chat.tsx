@@ -29,6 +29,7 @@ export function Chat() {
   }, [messages]);
 
   const fetchChatHistory = async () => {
+    setError(null);
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -47,15 +48,21 @@ export function Chat() {
           navigate('/login');
           return;
         }
-        throw new Error('Failed to fetch chat history');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch chat history');
       }
 
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid chat history format');
+      }
+
       setMessages(data.map((msg: any) => ({
-        ...msg,
+        content: msg.content || '',
+        sender: msg.sender === 'user' || msg.sender === 'bot' ? msg.sender : 'bot',
         timestamp: new Date(msg.timestamp),
       })));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching chat history:', error);
       setError('Failed to load chat history. Please try refreshing the page.');
     }
@@ -70,8 +77,11 @@ export function Chat() {
       return;
     }
 
+    const messageText = input.trim();
+    setInput('');
     setError(null);
     setIsLoading(true);
+
     try {
       const response = await fetch('http://localhost:5000/api/chat/message', {
         method: 'POST',
@@ -79,7 +89,7 @@ export function Chat() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: input }),
+        body: JSON.stringify({ content: messageText }),
       });
 
       if (!response.ok) {
@@ -91,22 +101,36 @@ export function Chat() {
         throw new Error(errorData.error || 'Failed to send message');
       }
 
-      const { userMessage, botMessage } = await response.json();
+      const data = await response.json();
+      if (!data.userMessage || !data.botMessage) {
+        throw new Error('Invalid response format');
+      }
+
       setMessages(prev => [
         ...prev,
         {
-          ...userMessage,
-          timestamp: new Date(userMessage.timestamp),
+          content: data.userMessage.content || messageText,
+          sender: 'user',
+          timestamp: new Date(data.userMessage.timestamp),
         },
         {
-          ...botMessage,
-          timestamp: new Date(botMessage.timestamp),
+          content: data.botMessage.content || "I'm having trouble understanding. Could you rephrase that?",
+          sender: 'bot',
+          timestamp: new Date(data.botMessage.timestamp),
         },
       ]);
-      setInput('');
     } catch (error: any) {
       console.error('Failed to send message:', error);
       setError(error.message || 'Failed to send message. Please try again.');
+      // Add the user's message even if the bot response failed
+      setMessages(prev => [
+        ...prev,
+        {
+          content: messageText,
+          sender: 'user',
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -117,6 +141,7 @@ export function Chat() {
       return;
     }
 
+    setError(null);
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -136,14 +161,14 @@ export function Chat() {
           navigate('/login');
           return;
         }
-        throw new Error('Failed to clear chat history');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to clear chat history');
       }
 
       setMessages([]);
-      setError(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to clear chat:', error);
-      setError('Failed to clear chat history. Please try again.');
+      setError(error.message || 'Failed to clear chat history. Please try again.');
     }
   };
 
@@ -214,7 +239,7 @@ export function Chat() {
               >
                 <p className="whitespace-pre-wrap">{message.content}</p>
                 <span className="text-xs opacity-70 mt-1 block">
-                  {message.timestamp.toLocaleTimeString('en-IN')}
+                  {message.timestamp.toLocaleTimeString()}
                 </span>
               </div>
             </div>
@@ -248,10 +273,6 @@ export function Chat() {
             >
               <Send className="w-5 h-5" />
             </button>
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground mt-2">
-            <span>Press Enter to send, Shift + Enter for new line</span>
-            <span>{input.length}/1000</span>
           </div>
         </div>
       </div>

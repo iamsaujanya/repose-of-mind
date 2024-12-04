@@ -10,28 +10,39 @@ declare global {
   namespace Express {
     interface Request {
       user?: any;
+      userId?: string;
     }
   }
 }
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Get token from header
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      throw new Error();
+      return res.status(401).json({ error: 'No authentication token, access denied' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JwtPayload;
-    const user = await User.findById(decoded.userId);
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JwtPayload;
+      
+      // Find user
+      const user = await User.findById(decoded.userId).select('-password');
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
 
-    if (!user) {
-      throw new Error();
+      // Add user to request object
+      req.user = user;
+      req.userId = decoded.userId;
+      next();
+    } catch (error) {
+      return res.status(401).json({ error: 'Token is invalid or expired' });
     }
-
-    req.user = user;
-    next();
   } catch (error) {
-    res.status(401).json({ error: 'Please authenticate.' });
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({ error: 'Server error' });
   }
 }; 

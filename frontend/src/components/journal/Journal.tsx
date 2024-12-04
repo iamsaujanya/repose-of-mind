@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { useNavigate } from 'react-router-dom';
 
 type JournalEntry = {
   _id: string;
   title: string;
   content: string;
   mood: string;
-  createdAt: string;
+  date: string;
 };
 
 export function Journal() {
@@ -18,6 +19,7 @@ export function Journal() {
   const [mood, setMood] = useState('neutral');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchEntries();
@@ -26,6 +28,11 @@ export function Journal() {
   const fetchEntries = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
       const response = await fetch('http://localhost:5000/api/journal', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -33,13 +40,20 @@ export function Journal() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch entries');
+        if (response.status === 401) {
+          navigate('/login');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch entries');
       }
 
       const data = await response.json();
       setEntries(data);
+      setError('');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error fetching entries:', err);
+      setError(err.message || 'Failed to load entries. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -47,8 +61,18 @@ export function Journal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      // Set the time of selectedDate to noon to avoid timezone issues
+      const entryDate = new Date(selectedDate);
+      entryDate.setHours(12, 0, 0, 0);
+
       const response = await fetch('http://localhost:5000/api/journal', {
         method: 'POST',
         headers: {
@@ -59,31 +83,40 @@ export function Journal() {
           title,
           content,
           mood,
-          createdAt: selectedDate.toISOString(),
+          date: entryDate.toISOString(),
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create entry');
+        if (response.status === 401) {
+          navigate('/login');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create entry');
       }
 
       await fetchEntries();
       setTitle('');
       setContent('');
       setMood('neutral');
+      setError('');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error creating entry:', err);
+      setError(err.message || 'Failed to save entry. Please try again.');
     }
   };
 
   const getEntriesForDate = (date: Date) => {
     return entries.filter((entry) => {
-      const entryDate = new Date(entry.createdAt);
-      return (
-        entryDate.getDate() === date.getDate() &&
-        entryDate.getMonth() === date.getMonth() &&
-        entryDate.getFullYear() === date.getFullYear()
-      );
+      const entryDate = new Date(entry.date);
+      const compareDate = new Date(date);
+      
+      // Set both dates to noon to avoid timezone issues
+      entryDate.setHours(12, 0, 0, 0);
+      compareDate.setHours(12, 0, 0, 0);
+      
+      return entryDate.getTime() === compareDate.getTime();
     });
   };
 
@@ -163,7 +196,7 @@ export function Journal() {
 
         <div>
           <h2 className="text-2xl font-bold mb-4">
-            Entries for {selectedDate.toLocaleDateString('en-IN')}
+            Entries for {selectedDate.toLocaleDateString()}
           </h2>
           {error && (
             <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md mb-4">
@@ -186,7 +219,7 @@ export function Journal() {
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <span>Mood: {entry.mood}</span>
                     <span>
-                      {new Date(entry.createdAt).toLocaleTimeString('en-IN')}
+                      {new Date(entry.date).toLocaleTimeString()}
                     </span>
                   </div>
                 </div>
