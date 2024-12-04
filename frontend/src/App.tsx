@@ -10,6 +10,7 @@ import { Chat } from './components/chat/Chat';
 import { Privacy } from './components/pages/Privacy';
 import { Terms } from './components/pages/Terms';
 import { Mindfulness } from './components/mindfulness/Mindfulness';
+import { Settings } from './components/settings/Settings';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
               <Route path="/journal" element={<Journal />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/mindfulness" element={<Mindfulness />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
             </Routes>

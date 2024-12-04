@@ -1,6 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
+
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 type UserData = {
   id: string;
@@ -9,9 +20,7 @@ type UserData = {
 };
 
 export function Profile() {
-  const [isOpen, setIsOpen] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,17 +28,6 @@ export function Profile() {
     if (user) {
       setUserData(JSON.parse(user));
     }
-  }, []);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -41,42 +39,43 @@ export function Profile() {
   if (!userData) return null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-      >
-        <User className="w-4 h-4" />
-        <span>{userData.name}</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 py-2 bg-card rounded-md shadow-lg border">
-          <div className="px-4 py-2 border-b">
-            <p className="font-medium truncate">{userData.name}</p>
-            <p className="text-sm text-muted-foreground truncate">{userData.email}</p>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Avatar className="cursor-pointer">
+          <AvatarFallback>
+            {userData.name
+              .split(' ')
+              .map(n => n[0])
+              .join('')
+              .toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{userData.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {userData.email}
+            </p>
           </div>
-          
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              navigate('/settings');
-            }}
-            className="w-full px-4 py-2 text-left hover:bg-accent flex items-center gap-2"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </button>
-          
-          <button
-            onClick={handleLogout}
-            className="w-full px-4 py-2 text-left hover:bg-accent text-destructive flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
-        </div>
-      )}
-    </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => navigate('/settings')}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 } 

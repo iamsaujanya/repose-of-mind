@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '../ui/button';
 
 declare global {
   interface Window {
     google: any;
   }
 }
+
+const API_BASE_URL = 'http://localhost:5000';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -24,29 +27,55 @@ export function Login() {
     document.body.appendChild(script);
 
     script.onload = () => {
-      window.google?.accounts.id.initialize({
-        client_id: '${process.env.GOOGLE_CLIENT_ID}',
-        callback: handleGoogleSignIn,
-      });
+      if (!window.google) return;
 
-      window.google?.accounts.id.renderButton(
-        document.getElementById('googleSignInButton'),
-        { theme: 'outline', size: 'large', width: '100%' }
-      );
+      try {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          callback: handleGoogleSignIn,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          ux_mode: 'popup',
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleSignInButton'),
+          {
+            theme: 'outline',
+            size: 'large',
+            width: '100%',
+            shape: 'pill',
+            text: 'continue_with',
+            logo_alignment: 'center',
+          }
+        );
+
+        // Also display the One Tap dialog
+        window.google.accounts.id.prompt();
+      } catch (err) {
+        console.error('Error initializing Google Sign-In:', err);
+        setError('Failed to initialize Google Sign-In');
+      }
     };
 
     return () => {
-      document.body.removeChild(script);
+      // Cleanup
+      const scriptElement = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (scriptElement) {
+        document.body.removeChild(scriptElement);
+      }
     };
   }, []);
 
   const handleGoogleSignIn = async (response: any) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
+      setError('');
+      const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ credential: response.credential }),
       });
 
@@ -61,7 +90,11 @@ export function Login() {
       navigate('/journal');
     } catch (err: any) {
       console.error('Google sign-in error:', err);
-      setError(err.message || 'Failed to sign in with Google');
+      if (err.message === 'Failed to fetch') {
+        setError('Unable to connect to the server. Please try again later.');
+      } else {
+        setError(err.message || 'Failed to sign in with Google');
+      }
     }
   };
 
@@ -71,11 +104,12 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
@@ -94,7 +128,11 @@ export function Login() {
       navigate('/journal');
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Failed to login. Please try again.');
+      if (err.message === 'Failed to fetch') {
+        setError('Unable to connect to the server. Please check your connection and try again.');
+      } else {
+        setError(err.message || 'Failed to login. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -149,20 +187,20 @@ export function Login() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 Signing in...
               </>
             ) : (
               'Sign In'
             )}
-          </button>
+          </Button>
         </form>
 
         <div className="relative">
