@@ -11,6 +11,7 @@ export function Footer() {
             <li><Link to="/journal">Journal</Link></li>
             <li><Link to="/chat">Chat Support</Link></li>
             <li><Link to="/mindfulness">Mindfulness</Link></li>
+            <li><Link to="/goals">Daily Goals</Link></li>
           </ul>
         </div>
 

@@ -45,15 +45,13 @@ router.get('/:id', auth, async (req, res) => {
 // Create a new goal
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, description, date, category, priority } = req.body;
+    const { title, description, date } = req.body;
 
     const goal = new DailyGoal({
       userId: req.user.id,
       title,
       description,
       date: date || new Date(),
-      category,
-      priority,
     });
 
     await goal.save();
@@ -66,7 +64,7 @@ router.post('/', auth, async (req, res) => {
 // Update a goal
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, description, completed, date, category, priority } = req.body;
+    const { title, description, completed, date } = req.body;
 
     const goal = await DailyGoal.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
@@ -76,8 +74,6 @@ router.put('/:id', auth, async (req, res) => {
           description,
           completed,
           date,
-          category,
-          priority,
         },
       },
       { new: true }

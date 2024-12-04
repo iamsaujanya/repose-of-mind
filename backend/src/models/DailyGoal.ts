@@ -6,8 +6,6 @@ export interface IDailyGoal extends Document {
   description?: string;
   completed: boolean;
   date: Date;
-  category: 'mental' | 'physical' | 'emotional' | 'social' | 'other';
-  priority: 'low' | 'medium' | 'high';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,18 +36,6 @@ const DailyGoalSchema = new Schema<IDailyGoal>(
       type: Date,
       required: true,
       default: Date.now,
-    },
-    category: {
-      type: String,
-      required: true,
-      enum: ['mental', 'physical', 'emotional', 'social', 'other'],
-      default: 'other',
-    },
-    priority: {
-      type: String,
-      required: true,
-      enum: ['low', 'medium', 'high'],
-      default: 'medium',
     },
   },
   {
