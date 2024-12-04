@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader2, Trash2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, Trash2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   content: string;
@@ -11,7 +12,9 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -28,6 +31,11 @@ export function Chat() {
   const fetchChatHistory = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
       const response = await fetch('http://localhost:5000/api/chat', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -35,6 +43,10 @@ export function Chat() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          navigate('/login');
+          return;
+        }
         throw new Error('Failed to fetch chat history');
       }
 
@@ -45,15 +57,22 @@ export function Chat() {
       })));
     } catch (error) {
       console.error('Error fetching chat history:', error);
+      setError('Failed to load chat history. Please try refreshing the page.');
     }
   };
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    setError(null);
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/chat/message', {
         method: 'POST',
         headers: {
@@ -64,7 +83,12 @@ export function Chat() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        if (response.status === 401) {
+          navigate('/login');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
       }
 
       const { userMessage, botMessage } = await response.json();
@@ -79,26 +103,47 @@ export function Chat() {
           timestamp: new Date(botMessage.timestamp),
         },
       ]);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    } finally {
       setInput('');
+    } catch (error: any) {
+      console.error('Failed to send message:', error);
+      setError(error.message || 'Failed to send message. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleClearChat = async () => {
+    if (!window.confirm('Are you sure you want to clear your chat history?')) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:5000/api/chat', {
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/chat', {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          navigate('/login');
+          return;
+        }
+        throw new Error('Failed to clear chat history');
+      }
+
       setMessages([]);
+      setError(null);
     } catch (error) {
       console.error('Failed to clear chat:', error);
+      setError('Failed to clear chat history. Please try again.');
     }
   };
 
@@ -131,6 +176,14 @@ export function Chat() {
             <Trash2 className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="p-4 bg-destructive/10 text-destructive flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            {error}
+          </div>
+        )}
 
         {/* Messages */}
         <div className="h-[calc(100%-8rem)] overflow-y-auto p-4 space-y-4">
@@ -186,6 +239,7 @@ export function Chat() {
               className="flex-1 p-2 rounded-md border bg-background resize-none"
               rows={1}
               disabled={isLoading}
+              maxLength={1000}
             />
             <button
               onClick={handleSend}
@@ -195,9 +249,10 @@ export function Chat() {
               <Send className="w-5 h-5" />
             </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Press Enter to send, Shift + Enter for new line
-          </p>
+          <div className="flex justify-between text-xs text-muted-foreground mt-2">
+            <span>Press Enter to send, Shift + Enter for new line</span>
+            <span>{input.length}/1000</span>
+          </div>
         </div>
       </div>
     </div>

@@ -16,6 +16,8 @@ Important guidelines:
 - Suggest breathing exercises and meditation when appropriate
 - Be sensitive to cultural differences
 - Maintain confidentiality and privacy
+- Keep responses concise and focused
+- Use a friendly, conversational tone
 
 If a user expresses thoughts of self-harm or suicide:
 - Take it seriously
@@ -24,32 +26,30 @@ If a user expresses thoughts of self-harm or suicide:
 - Encourage seeking immediate professional help`;
 
 export class GeminiService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-  private chat;
+  private model;
 
   constructor() {
-    this.chat = this.model.startChat({
-      history: [
-        {
-          role: 'user',
-          parts: SYSTEM_PROMPT,
-        },
-        {
-          role: 'model',
-          parts: "I understand my role as a mental health companion. I'll provide empathetic support while maintaining appropriate boundaries and prioritizing user safety.",
-        },
-      ],
-    });
+    this.model = genAI.getGenerativeModel({ model: 'gemini-pro' });
   }
 
   async generateResponse(userMessage: string): Promise<string> {
     try {
-      const result = await this.chat.sendMessage(userMessage);
+      // Combine system prompt with user message for context
+      const prompt = `${SYSTEM_PROMPT}\n\nUser: ${userMessage}\n\nResponse:`;
+      
+      const result = await this.model.generateContent(prompt);
       const response = await result.response;
-      return response.text();
+      const text = response.text();
+      
+      // If response is empty, provide a fallback
+      if (!text.trim()) {
+        return "I understand what you're saying. Could you tell me more about how you're feeling?";
+      }
+
+      return text;
     } catch (error) {
       console.error('Error generating response:', error);
-      return "I apologize, but I'm having trouble processing your message right now. Please try again in a moment.";
+      return "I apologize, but I'm having trouble processing your message right now. Could you try rephrasing that, or perhaps we could explore a different topic?";
     }
   }
 } 

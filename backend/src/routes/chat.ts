@@ -25,7 +25,8 @@ router.get('/', auth, async (req, res) => {
 
     res.json(chat.messages);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error fetching chat history:', error);
+    res.status(500).json({ error: 'Failed to fetch chat history' });
   }
 });
 
@@ -33,8 +34,12 @@ router.get('/', auth, async (req, res) => {
 router.post('/message', auth, async (req, res) => {
   try {
     const { content } = req.body;
-    if (!content) {
-      return res.status(400).json({ error: 'Message content is required' });
+    if (!content || typeof content !== 'string') {
+      return res.status(400).json({ error: 'Valid message content is required' });
+    }
+
+    if (content.length > 1000) {
+      return res.status(400).json({ error: 'Message is too long. Please keep it under 1000 characters.' });
     }
 
     let chat = await Chat.findOne({ userId: req.user._id });
@@ -44,23 +49,38 @@ router.post('/message', auth, async (req, res) => {
 
     // Add user message
     const userMessage = {
-      content,
+      content: content.trim(),
       sender: 'user' as const,
       timestamp: new Date(),
     };
     chat.messages.push(userMessage);
 
-    // Get bot response
-    const botResponse = await geminiService.generateResponse(content);
-    const botMessage = {
-      content: botResponse,
-      sender: 'bot' as const,
-      timestamp: new Date(),
-    };
-    chat.messages.push(botMessage);
+    try {
+      // Get bot response
+      const botResponse = await geminiService.generateResponse(content);
+      const botMessage = {
+        content: botResponse,
+        sender: 'bot' as const,
+        timestamp: new Date(),
+      };
+      chat.messages.push(botMessage);
 
-    await chat.save();
-    res.json({ userMessage, botMessage });
+      await chat.save();
+      res.json({ userMessage, botMessage });
+    } catch (error) {
+      // If Gemini API fails, save only the user message
+      await chat.save();
+      console.error('Error generating bot response:', error);
+      res.status(500).json({
+        error: 'Failed to generate response',
+        userMessage,
+        botMessage: {
+          content: "I apologize, but I'm having trouble responding right now. Please try again in a moment.",
+          sender: 'bot',
+          timestamp: new Date(),
+        },
+      });
+    }
   } catch (error) {
     console.error('Chat error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -70,10 +90,14 @@ router.post('/message', auth, async (req, res) => {
 // Clear chat history
 router.delete('/', auth, async (req, res) => {
   try {
-    await Chat.findOneAndDelete({ userId: req.user._id });
-    res.json({ message: 'Chat history cleared' });
+    const result = await Chat.findOneAndDelete({ userId: req.user._id });
+    if (!result) {
+      return res.status(404).json({ error: 'No chat history found' });
+    }
+    res.json({ message: 'Chat history cleared successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error clearing chat history:', error);
+    res.status(500).json({ error: 'Failed to clear chat history' });
   }
 });
 
