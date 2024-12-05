@@ -1,50 +1,242 @@
-# React + TypeScript + Vite
+# Repose of Mind Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![React](https://img.shields.io/badge/react-%5E18.2.0-blue.svg)
+![TypeScript](https://img.shields.io/badge/typescript-%5E5.3.3-blue.svg)
+![Vite](https://img.shields.io/badge/vite-%5E5.0.8-brightgreen.svg)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%5E3.4.16-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-Currently, two official plugins are available:
+> The frontend application for Repose of Mind - A mental health companion built with React, TypeScript, and Tailwind CSS.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📚 Table of Contents
 
-## Expanding the ESLint configuration
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Development](#-development)
+- [Styling](#-styling)
+- [Components](#-components)
+- [Testing](#-testing)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## ✨ Features
 
-- Configure the top-level `parserOptions` property like this:
+- 🎨 **Modern UI** with shadcn/ui components
+- 🌓 **Dark/Light Mode** with theme persistence
+- 📱 **Responsive Design** for all devices
+- 🔒 **Secure Authentication** with Google OAuth
+- 🎯 **Real-time Updates** for goals and journals
+- 🌍 **IST Timezone Support** for date handling
+- 🚀 **Fast Development** with Vite
+
+## 🛠️ Tech Stack
+
+- **Framework**: React 18
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Components**: shadcn/ui
+- **Build Tool**: Vite
+- **Routing**: React Router DOM
+- **Date Handling**: date-fns & date-fns-tz
+- **HTTP Client**: Native fetch API
+
+## 🚀 Getting Started
+
+1. **Install Dependencies**
+
+```bash
+cd repose-of-mind/frontend
+npm install
+```
+
+2. **Environment Setup**
+
+```bash
+cp .env.sample .env
+```
+
+Configure `.env`:
+
+```env
+VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+3. **Start Development Server**
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:5173`
+
+## 📁 Project Structure
+
+```
+src/
+├── components/         # React components
+│   ├── auth/          # Authentication
+│   ├── chat/          # AI chat
+│   ├── goals/         # Daily goals
+│   ├── journal/       # Journaling
+│   ├── layout/        # Layout components
+│   ├── pages/         # Page components
+│   └── ui/            # UI components
+├── lib/               # Utilities
+├── styles/            # Global styles
+└── App.tsx            # Main component
+```
+
+## 💻 Development
+
+```bash
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Type checking
+npm run typecheck
+
+# Linting
+npm run lint
+```
+
+## 🎨 Styling
+
+We use Tailwind CSS with custom configuration:
 
 ```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
+// tailwind.config.js
+module.exports = {
+  darkMode: ["class"],
+  content: ["./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        // Custom colors
+      }
+    }
+  }
+}
+```
+
+## 🧩 Components
+
+### UI Components
+- Buttons
+- Cards
+- Dialogs
+- Dropdowns
+- Forms
+- Navigation
+
+### Feature Components
+- Journal Editor
+- Goal Tracker
+- Chat Interface
+- Calendar View
+- Profile Management
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:coverage
+```
+
+## 📱 Responsive Design
+
+- Mobile-first approach
+- Breakpoints:
+  - sm: 640px
+  - md: 768px
+  - lg: 1024px
+  - xl: 1280px
+  - 2xl: 1536px
+
+## 🔒 Security
+
+- Secure token storage
+- XSS prevention
+- CSRF protection
+- Input validation
+- Secure routing
+
+## 🌐 API Integration
+
+```typescript
+const API_URL = import.meta.env.VITE_API_URL;
+
+async function fetchData(endpoint: string) {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
     },
-  },
-})
+  });
+  return response.json();
+}
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## 🚀 Deployment
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+1. Build the application
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+npm run build
 ```
+
+2. Test the build
+
+```bash
+npm run preview
+```
+
+3. Deploy the `dist` directory
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Build Errors**
+
+```bash
+# Clear cache and node_modules
+rm -rf node_modules
+rm -rf dist
+npm install
+```
+
+2. **Type Errors**
+
+```bash
+# Update TypeScript definitions
+npm run typecheck
+```
+
+3. **Vite Issues**
+
+```bash
+# Clear Vite cache
+rm -rf node_modules/.vite
+```
+
+## 📞 Support
+
+- Check documentation
+- Review GitHub issues
+- Email: iamsaujanya.ig@gmail.com
+
+## 📄 License
+
+MIT License - see the [LICENSE](LICENSE) file
