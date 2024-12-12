@@ -1,121 +1,219 @@
-# Repose of Mind Backend
+# 🚀 Repose of Mind Backend
+
+<div align="center">
 
 ![Express](https://img.shields.io/badge/express-%5E4.18.2-blue.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-%5E5.3.3-blue.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-%5E8.0.3-green.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)
 
-> Backend server for Repose of Mind - A mental health companion application. Built with Express.js, TypeScript, and MongoDB.
+The backend server for Repose of Mind - A robust Node.js API powering mental wellness features.
 
-## 📚 Table of Contents
+[Setup](#-setup) • [API Reference](#-api-reference) • [Development](#-development) • [Deployment](#-deployment)
 
-- [Features](#-features)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [API Documentation](#-api-documentation)
+</div>
+
+## 📋 Table of Contents
+
+- [Setup](#-setup)
+- [API Reference](#-api-reference)
+- [Architecture](#-architecture)
+- [Database](#-database)
+- [Authentication](#-authentication)
 - [Development](#-development)
 - [Testing](#-testing)
 - [Deployment](#-deployment)
+- [Monitoring](#-monitoring)
 - [Troubleshooting](#-troubleshooting)
 
-## ✨ Features
+## 🛠️ Setup
 
-- 🔐 **JWT Authentication** with Google OAuth support
-- 📝 **Journal Management** with mood tracking
-- 🤖 **AI Chat Integration** using Google Gemini
-- 🎯 **Daily Goals System** with progress tracking
-- 🌏 **IST Timezone Support** for date handling
-- 🛡️ **Security Features** including input validation
-
-## 🔧 Prerequisites
+### Prerequisites
 
 - Node.js ≥ 16.0.0
 - MongoDB ≥ 4.4.0
 - npm or yarn
-- Google Cloud account for OAuth & Gemini API
+- Google Cloud account (for OAuth & Gemini API)
 
-## 🚀 Installation
+### Installation
 
 1. **Clone and Install**
-```bash
-cd repose-of-mind/backend
-npm install
-```
+   ```bash
+   cd repose-of-mind/backend
+   npm install
+   ```
 
 2. **Environment Setup**
-```bash
-cp .env.sample .env
+   ```bash
+   cp .env.sample .env
+   ```
+
+   Required environment variables:
+   ```env
+   PORT=5000                    # Server port
+   MONGODB_URI=                 # MongoDB connection string
+   JWT_SECRET=                  # JWT signing key
+   GEMINI_API_KEY=             # Google Gemini API key
+   NODE_ENV=development        # Environment
+   ```
+
+3. **Database Setup**
+   ```bash
+   # Start MongoDB (Ubuntu/Debian)
+   sudo systemctl start mongodb
+   
+   # Verify MongoDB status
+   sudo systemctl status mongodb
+   ```
+
+4. **Start Server**
+   ```bash
+   # Development mode
+   npm run dev
+
+   # Production mode
+   npm run build && npm start
+   ```
+
+## 📡 API Reference
+
+### Authentication Endpoints
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "name": "string",
+  "email": "string",
+  "password": "string"
+}
 ```
 
-Configure your `.env`:
-```env
-PORT=5000
-MONGODB_URI=your_mongodb_uri
-JWT_SECRET=your_jwt_secret
-GEMINI_API_KEY=your_gemini_api_key
-NODE_ENV=development
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "string",
+  "password": "string"
+}
 ```
 
-3. **Start MongoDB**
-```bash
-sudo systemctl start mongodb
+```http
+POST /api/auth/google
+Content-Type: application/json
+
+{
+  "token": "string"  // Google OAuth token
+}
 ```
-
-4. **Run the Server**
-```bash
-# Development
-npm run dev
-
-# Production
-npm run build && npm start
-```
-
-## 📡 API Documentation
-
-### Auth Endpoints
-\`\`\`
-POST /api/auth/register - Register new user
-POST /api/auth/login    - Login user
-POST /api/auth/google   - Google OAuth
-GET  /api/auth/profile  - Get user profile
-\`\`\`
 
 ### Journal Endpoints
-\`\`\`
-GET    /api/journal     - Get all entries
-POST   /api/journal     - Create entry
-GET    /api/journal/:id - Get entry
-PUT    /api/journal/:id - Update entry
-DELETE /api/journal/:id - Delete entry
-\`\`\`
+
+```http
+GET /api/journal
+Authorization: Bearer <token>
+```
+
+```http
+POST /api/journal
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "string",
+  "content": "string",
+  "mood": "happy" | "sad" | "neutral" | "anxious" | "excited"
+}
+```
 
 ### Daily Goals Endpoints
-\`\`\`
-GET    /api/daily-goals      - Get all goals
-POST   /api/daily-goals      - Create goal
-PUT    /api/daily-goals/:id  - Update goal
-DELETE /api/daily-goals/:id  - Delete goal
-POST   /api/daily-goals/:id/complete - Complete goal
-\`\`\`
+
+```http
+GET /api/daily-goals
+Authorization: Bearer <token>
+```
+
+```http
+POST /api/daily-goals
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "string",
+  "description": "string",
+  "targetDays": number
+}
+```
 
 ### Chat Endpoints
-\`\`\`
-POST /api/chat        - Send message
-GET  /api/chat/history - Get chat history
-\`\`\`
 
-## 📁 Project Structure
+```http
+POST /api/chat
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "message": "string"
+}
+```
+
+## 🏗️ Architecture
 
 ```
 src/
-├── models/           # Database models
+├── models/           # MongoDB schemas
+│   ├── User.ts
+│   ├── Journal.ts
+│   ├── DailyGoal.ts
+│   └── Chat.ts
 ├── routes/          # API routes
+│   ├── auth.ts
+│   ├── journal.ts
+│   ├── dailyGoals.ts
+│   └── chat.ts
 ├── middleware/      # Custom middleware
+│   ├── auth.ts
+│   └── validation.ts
 ├── services/        # Business logic
-└── server.ts        # Entry point
+│   └── gemini.ts
+├── utils/          # Helper functions
+│   └── date.ts
+└── server.ts       # Entry point
 ```
 
-## 🛠️ Development
+## 🗄️ Database
+
+### MongoDB Collections
+
+- **Users**: Authentication and profile data
+- **Journals**: User journal entries and moods
+- **DailyGoals**: User goals and progress
+- **Chats**: AI conversation history
+
+### Indexes
+
+```typescript
+// User indexes
+userSchema.index({ email: 1 }, { unique: true });
+
+// Journal indexes
+journalSchema.index({ userId: 1, date: -1 });
+
+// DailyGoals indexes
+dailyGoalSchema.index({ userId: 1, createdAt: -1 });
+```
+
+## 🔒 Authentication
+
+- JWT-based authentication
+- Google OAuth integration
+- Token expiration handling
+- Password hashing with bcrypt
+- Role-based access control
+
+## 💻 Development
 
 ```bash
 # Start development server
@@ -129,6 +227,9 @@ npm test
 
 # Check linting
 npm run lint
+
+# Type checking
+npm run typecheck
 ```
 
 ## 🧪 Testing
@@ -137,80 +238,120 @@ npm run lint
 # Run all tests
 npm test
 
-# Run specific tests
+# Run specific test suite
 npm test -- --grep "Auth"
 
-# Generate coverage
+# Generate coverage report
 npm run test:coverage
 ```
 
-## 🚀 Deployment
+## 📦 Deployment
 
-1. Build the application
-```bash
-npm run build
-```
+1. **Build Application**
+   ```bash
+   npm run build
+   ```
 
-2. Set production environment
-```bash
-export NODE_ENV=production
-```
+2. **Set Production Environment**
+   ```bash
+   export NODE_ENV=production
+   ```
 
-3. Start the server
-```bash
-npm start
-```
+3. **Start Server**
+   ```bash
+   npm start
+   ```
+
+## 📊 Monitoring
+
+- Error logging with Winston
+- Performance monitoring
+- API request logging
+- Database query monitoring
+- Memory usage tracking
 
 ## ❗ Troubleshooting
 
-### MongoDB Issues
-```bash
-# Check MongoDB status
-sudo systemctl status mongodb
+### Common Issues
 
-# Fix permissions
-sudo chown -R mongodb:mongodb /var/lib/mongodb
-```
+1. **MongoDB Connection**
+   ```bash
+   # Check MongoDB status
+   sudo systemctl status mongodb
 
-### Build Issues
-```bash
-# Clean and rebuild
-rm -rf dist/
-npm run build
-```
+   # View MongoDB logs
+   sudo tail -f /var/log/mongodb/mongodb.log
 
-## 🔒 Security
+   # Fix permissions
+   sudo chown -R mongodb:mongodb /var/lib/mongodb
+   ```
 
-- JWT tokens expire in 24 hours
-- Password hashing with bcrypt
-- Input validation & sanitization
-- MongoDB injection prevention
+2. **Build Issues**
+   ```bash
+   # Clean and rebuild
+   rm -rf dist/
+   npm run build
+   ```
+
+3. **Memory Issues**
+   ```bash
+   # Increase Node.js memory limit
+   export NODE_OPTIONS=--max_old_space_size=4096
+   ```
+
+### Security Measures
+
+- Input validation
+- Request rate limiting
 - CORS configuration
+- XSS prevention
+- CSRF protection
+- SQL injection prevention
 
-## 📝 Environment Variables
+## 🔍 Logging
 
-```env
-PORT=5000                 # Server port
-MONGODB_URI=             # MongoDB connection string
-JWT_SECRET=              # JWT signing key
-GEMINI_API_KEY=          # Google Gemini API key
-NODE_ENV=development     # Environment
+```typescript
+// Error logging
+logger.error('Database connection failed', {
+  error: err.message,
+  timestamp: new Date(),
+  service: 'mongodb'
+});
+
+// API request logging
+logger.info('API request', {
+  method: req.method,
+  path: req.path,
+  duration: responseTime
+});
 ```
-
-## 👥 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## 📞 Support
 
-- Check [Troubleshooting](#-troubleshooting)
-- Review GitHub issues
-- Email: iamsaujanya.ig@gmail.com
+Need help with the backend? Contact us:
 
-## 📄 License
+- 📧 Email: iamsaujanya.ig@gmail.com
+- 💻 GitHub Issues: [Create an issue](https://github.com/yourusername/repose-of-mind/issues)
+- 📚 Documentation: Check our [Wiki](https://github.com/yourusername/repose-of-mind/wiki)
 
-MIT License - see the [LICENSE](LICENSE) file
+## 🔄 Continuous Integration
+
+- GitHub Actions workflow
+- Automated testing
+- Code quality checks
+- Docker image builds
+- Deployment automation
+
+## 📈 Performance
+
+- Response time monitoring
+- Database query optimization
+- Caching strategies
+- Load balancing
+- Rate limiting
+
+---
+
+<div align="center">
+Made with 💻 by the Repose of Mind Backend Team
+</div>
