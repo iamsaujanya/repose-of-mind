@@ -8,11 +8,9 @@
 ![React](https://img.shields.io/badge/react-%5E18.2.0-blue.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-%5E5.3.3-blue.svg)
 
-A modern mental wellness companion designed to help you track, improve, and maintain your mental well-being.
+A mental health companion web application that provides tools and resources for mental wellness.
 
 [Getting Started](#getting-started) • [Features](#features) • [Documentation](#documentation) • [Support](#support)
-
-![Repose of Mind Screenshot](screenshot.png)
 
 </div>
 
