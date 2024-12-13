@@ -183,12 +183,8 @@ rm -rf frontend/dist backend/dist
 Need help? We're here for you!
 
 - 📧 Email: iamsaujanya.ig@gmail.com
-- 💬 Discord: [Join our community](https://discord.gg/repose-of-mind)
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/repose-of-mind/issues)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- 💬 GitHub Issues: [Create an issue](https://github.com/yourusername/repose-of-mind/issues)
+- 💬 Discussions: Join our [GitHub Discussions](https://github.com/yourusername/repose-of-mind/discussions)
 
 ## 🙏 Acknowledgments
 
