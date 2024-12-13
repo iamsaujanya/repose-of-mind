@@ -267,7 +267,6 @@ Need help with the frontend? Contact us:
 
 - 📧 Email: iamsaujanya.ig@gmail.com
 - 💻 GitHub Issues: [Create an issue](https://github.com/yourusername/repose-of-mind/issues)
-- 📚 Documentation: Check our [Wiki](https://github.com/yourusername/repose-of-mind/wiki)
 
 ---
 
