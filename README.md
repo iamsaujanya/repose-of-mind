@@ -98,7 +98,7 @@ A mental health companion web application that provides tools and resources for 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/repose-of-mind.git
+   git clone https://github.com/iamsaujanya/repose-of-mind.git
    cd repose-of-mind
    ```
 
@@ -168,8 +168,8 @@ repose-of-mind/
 
 Need help? Contact us:
 - 📧 Email: iamsaujanya.ig@gmail.com
-- 💻 GitHub Issues: [Create an issue](https://github.com/yourusername/repose-of-mind/issues)
-- 💬 Discussions: [Join discussions](https://github.com/yourusername/repose-of-mind/discussions)
+- 💻 GitHub Issues: [Create an issue](https://github.com/iamsaujanya/repose-of-mind/issues)
+- 💬 Discussions: [Join discussions](https://github.com/iamsaujanya/repose-of-mind/discussions)
 
 ## 📄 License
 

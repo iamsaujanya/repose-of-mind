@@ -328,11 +328,10 @@ logger.info('API request', {
 
 ## 📞 Support
 
-Need help with the backend? Contact us:
-
+Need help? Contact us:
 - 📧 Email: iamsaujanya.ig@gmail.com
-- 💻 GitHub Issues: [Create an issue](https://github.com/yourusername/repose-of-mind/issues)
-- 💬 Discussions: Join our [GitHub Discussions](https://github.com/yourusername/repose-of-mind/discussions)
+- 💻 GitHub Issues: [Create an issue](https://github.com/iamsaujanya/repose-of-mind/issues)
+- 💬 Discussions: Join our [GitHub Discussions](https://github.com/iamsaujanya/repose-of-mind/discussions)
 
 ## 🔄 Continuous Integration
 
