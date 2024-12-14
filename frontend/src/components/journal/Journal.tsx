@@ -177,7 +177,10 @@ export function Journal() {
           <h2 className="text-2xl font-bold mb-4">Journal Entries</h2>
           <div className="calendar-wrapper bg-card p-4 rounded-lg shadow-lg">
             <Calendar
-              onChange={setSelectedDate}
+              onChange={(value) => {
+                const dateObj = Array.isArray(value) ? value[0]?.getDate() : value?.getDate();
+                setSelectedDate(new Date(dateObj!));
+              }}
               value={selectedDate}
               className="w-full !bg-transparent border-none"
               tileContent={({ date }) => {
