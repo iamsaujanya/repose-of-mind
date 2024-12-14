@@ -9,6 +9,8 @@ A mental health companion web application that provides tools and resources for 
 ![MongoDB](https://img.shields.io/badge/mongodb-%3E%3D4.4.0-green.svg)
 ![React](https://img.shields.io/badge/react-%5E18.2.0-blue.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-%5E5.3.3-blue.svg)
+![Vite](https://img.shields.io/badge/vite-%5E5.0.8-brightgreen.svg)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%5E3.4.16-blue.svg)
 
 [Setup Guide](#setup-guide) • [Features](#features) • [Development](#development) • [Support](#support)
 
@@ -119,7 +121,6 @@ A mental health companion web application that provides tools and resources for 
 
 4. Start the development servers:
    ```bash
-   # Start both frontend and backend
    npm run dev
    ```
 
