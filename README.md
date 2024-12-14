@@ -31,7 +31,7 @@ The frontend application for Repose of Mind - A modern mental wellness companion
 
 - Node.js ≥ 16.0.0
 - npm or yarn
-- Backend server running (see [Backend README]([../backend/README.md](https://github.com/iamsaujanya/repose-of-mind/blob/master/backend/README.md))
+- Backend server running (see [Backend README]([(https://github.com/iamsaujanya/repose-of-mind/blob/master/backend/README.md)))
 
 ### Installation
 
