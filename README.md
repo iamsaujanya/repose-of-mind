@@ -1,276 +1,183 @@
-# 🎨 Repose of Mind Frontend
+# Repose of Mind
 
 <div align="center">
 
+A mental health companion web application that provides tools and resources for mental wellness.
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)
+![MongoDB](https://img.shields.io/badge/mongodb-%3E%3D4.4.0-green.svg)
 ![React](https://img.shields.io/badge/react-%5E18.2.0-blue.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-%5E5.3.3-blue.svg)
 ![Vite](https://img.shields.io/badge/vite-%5E5.0.8-brightgreen.svg)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%5E3.4.16-blue.svg)
 
-The frontend application for Repose of Mind - A modern mental wellness companion built with React and TypeScript.
-
-[Setup](#-setup) • [Development](#-development) • [Components](#-components) • [Styling](#-styling)
+[Setup Guide](#setup-guide) • [Features](#features) • [Development](#development) • [Support](#support)
 
 </div>
 
+---
+
 ## 📋 Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Setup Guide](#setup-guide)
+  - [API Keys Setup](#api-keys-setup)
+  - [Environment Setup](#environment-setup)
+  - [Installation](#installation)
+- [Development](#development)
+  - [Project Structure](#project-structure)
+  - [Available Scripts](#available-scripts)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
 
-- [Setup](#-setup)
-- [Development](#-development)
-- [Project Structure](#-project-structure)
-- [Components](#-components)
-- [Styling](#-styling)
-- [State Management](#-state-management)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Troubleshooting](#-troubleshooting)
+## ✨ Features
 
-## 🚀 Setup
+- **Journal**: Express your thoughts and track your emotional journey
+- **AI Chat**: Get support through AI-powered conversations
+- **Mindfulness**: Access guided meditation and mindfulness exercises
+- **Daily Goals**: Set and track personal goals for mental wellness
+- **Dark/Light Mode**: Comfortable viewing experience
+- **Responsive Design**: Works on all devices
 
-### Prerequisites
+## 🔧 Prerequisites
 
-- Node.js ≥ 16.0.0
+- Node.js (v16 or higher)
+- MongoDB (v4.4 or higher)
 - npm or yarn
-- Backend server running
+
+## 🚀 Setup Guide
+
+### API Keys Setup
+
+#### 1. MongoDB Atlas
+1. Visit [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a free account or sign in
+3. Create a new cluster
+4. Click "Connect" and choose "Connect your application"
+5. Copy the connection string
+6. Replace `<username>`, `<password>`, `<cluster>`, and `<dbname>` with your details
+
+#### 2. Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select an existing one
+3. Enable the Google OAuth API
+4. Create OAuth 2.0 Client ID (Web Application)
+5. Add authorized JavaScript origins:
+   - `http://localhost:5173` (for development)
+6. Add authorized redirect URIs:
+   - `http://localhost:5173/login` (for development)
+7. Copy the Client ID
+
+#### 3. Google Gemini API
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the generated API key
+
+### Environment Setup
+
+1. Backend Configuration:
+   ```bash
+   cd backend
+   cp .env.sample .env
+   ```
+   Edit `.env` and add your:
+   - MongoDB connection string
+   - JWT secret (generate using provided command)
+   - Gemini API key
+
+2. Frontend Configuration:
+   ```bash
+   cd frontend
+   cp .env.sample .env
+   ```
+   Edit `.env` and add your:
+   - Google OAuth Client ID
 
 ### Installation
 
-1. **Install Dependencies**
+1. Clone the repository:
    ```bash
-   cd repose-of-mind/frontend
+   git clone https://github.com/iamsaujanya/repose-of-mind.git
+   cd repose-of-mind
+   ```
+
+2. Install dependencies:
+   ```bash
+   # Install root dependencies
    npm install
+
+   # Install frontend and backend dependencies
+   npm run install:all
    ```
 
-2. **Environment Configuration**
+3. Start MongoDB:
    ```bash
-   cp .env.sample .env
-   ```
-   
-   Configure the following variables:
-   ```env
-   VITE_API_URL=http://localhost:5000
-   VITE_GOOGLE_CLIENT_ID=your_google_client_id
+   # Start MongoDB service
+   sudo systemctl start mongodb
    ```
 
-3. **Start Development Server**
+4. Start the development servers:
    ```bash
    npm run dev
    ```
-   
-   Access the application at `http://localhost:5173`
+
+5. Access the application:
+   - Frontend: http://localhost:5173
+   - Backend: http://localhost:5000
 
 ## 💻 Development
 
 ### Available Scripts
 
-```bash
-# Start development server
-npm run dev
+- Frontend development server: `npm run dev:frontend`
+- Backend development server: `npm run dev:backend`
+- Build frontend: `npm run build:frontend`
+- Build backend: `npm run build:backend`
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run tests
-npm test
-
-# Check types
-npm run typecheck
-
-# Lint code
-npm run lint
-```
-
-### Code Quality Tools
-
-- **TypeScript** for static typing
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **Husky** for pre-commit hooks
-
-## 📁 Project Structure
+### Project Structure
 
 ```
-src/
-├── components/         # React components
-│   ├── auth/          # Authentication components
-│   ├── chat/          # Chat interface components
-│   ├── goals/         # Goal tracking components
-│   ├── journal/       # Journaling components
-│   ├── layout/        # Layout components
-│   ├── mindfulness/   # Mindfulness components
-│   └── ui/            # Reusable UI components
-├── lib/               # Utility functions
-├── hooks/             # Custom React hooks
-├── types/             # TypeScript type definitions
-├── styles/            # Global styles
-└── App.tsx            # Main application component
+repose-of-mind/
+├── frontend/              # React frontend
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── lib/          # Utilities
+│   │   └── App.tsx       # Main app component
+│   └── package.json
+├── backend/              # Express backend
+│   ├── src/
+│   │   ├── models/       # MongoDB models
+│   │   ├── routes/       # API routes
+│   │   ├── middleware/   # Custom middleware
+│   │   └── server.ts     # Server entry point
+│   └── package.json
+└── package.json         # Root package.json
 ```
 
-## 🧩 Components
+## 🤝 Contributing
 
-### Core Components
-
-- **Authentication**
-  - Login
-  - Register
-  - Profile
-  - OAuth Integration
-
-- **Journal**
-  - Entry Editor
-  - Mood Tracker
-  - Calendar View
-  - Entry List
-
-- **Chat**
-  - Message Interface
-  - Chat History
-  - AI Integration
-  - Response Handling
-
-- **Goals**
-  - Goal Creator
-  - Progress Tracker
-  - Streak Counter
-  - Achievement Display
-
-### UI Components
-
-All UI components are built using shadcn/ui and can be found in `src/components/ui/`:
-
-- Button
-- Card
-- Dialog
-- Input
-- Select
-- Checkbox
-- Avatar
-- Dropdown
-
-## 🎨 Styling
-
-### Tailwind Configuration
-
-```js
-// tailwind.config.js
-module.exports = {
-  darkMode: ["class"],
-  content: ["./src/**/*.{ts,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        // Custom color palette
-        primary: { ... },
-        secondary: { ... }
-      },
-      // Custom animations
-      keyframes: { ... },
-      // Responsive breakpoints
-      screens: { ... }
-    }
-  }
-}
-```
-
-### Theme System
-
-- Dark/Light mode support
-- CSS variables for dynamic theming
-- Consistent color palette
-- Responsive design utilities
-
-## 📊 State Management
-
-- React Context for global state
-- Local state with useState
-- Form state with controlled components
-- Auth state persistence
-- Theme preferences storage
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
-```
-
-## 📦 Deployment
-
-1. **Build the Application**
-   ```bash
-   npm run build
-   ```
-
-2. **Preview the Build**
-   ```bash
-   npm run preview
-   ```
-
-3. **Deployment Checklist**
-   - Environment variables configured
-   - API endpoints updated
-   - Assets optimized
-   - Performance tested
-   - SEO meta tags added
-
-## ❗ Troubleshooting
-
-### Common Issues
-
-1. **Build Failures**
-   ```bash
-   # Clear build cache
-   rm -rf dist
-   rm -rf node_modules/.vite
-   npm install
-   ```
-
-2. **Type Errors**
-   ```bash
-   # Update TypeScript definitions
-   npm run typecheck
-   ```
-
-3. **Styling Issues**
-   ```bash
-   # Rebuild Tailwind CSS
-   npm run build:css
-   ```
-
-### Development Tips
-
-- Use React DevTools for component debugging
-- Check Network tab for API issues
-- Verify environment variables
-- Clear browser cache if needed
-
-## 🔒 Security
-
-- Secure token storage
-- XSS prevention
-- CSRF protection
-- Input sanitization
-- Secure routing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## 📞 Support
 
-Need help with the frontend? Contact us:
-
+Need help? Contact us:
 - 📧 Email: iamsaujanya.ig@gmail.com
 - 💻 GitHub Issues: [Create an issue](https://github.com/iamsaujanya/repose-of-mind/issues)
-- 💬 Discussions: Join our [GitHub Discussions](https://github.com/iamsaujanya/repose-of-mind/discussions)
+- 💬 Discussions: [Join discussions](https://github.com/iamsaujanya/repose-of-mind/discussions)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
-Made with 💜 by the Repose of Mind Frontend Team
+Made with 💖 by Repose of Mind Team
 </div>

@@ -2,6 +2,7 @@
   "name": "repose-of-mind",
   "version": "1.0.0",
   "description": "A mental health companion web application",
+  "license": "MIT",
   "scripts": {
     "install:all": "cd frontend && npm install && cd ../backend && npm install",
     "dev:frontend": "cd frontend && npm run dev",
