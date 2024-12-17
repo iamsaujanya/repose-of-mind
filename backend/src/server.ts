@@ -16,7 +16,7 @@ const port = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://iamsaujanya.github.io/',
+  'https://iamsaujanya.github.io',
   'https://iamsaujanya.github.io/login',
   'https://iamsaujanya.github.io/register',
   'https://iamsaujanya.github.io/repose-of-mind',
