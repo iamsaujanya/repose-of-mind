@@ -9,7 +9,22 @@ declare global {
   }
 }
 
-const API_BASE_URL = 'http://localhost:5000';
+// Define your URLs
+const DEV_API_BASE_URL = 'http://localhost:5000';
+const PROD_API_BASE_URLS = [
+  'https://iamsaujanya.github.io',
+  'https://iamsaujanya.github.io/login',
+  'https://iamsaujanya.github.io/register',
+  'https://iamsaujanya.github.io/repose-of-mind'
+];
+
+// Function to get a random production URL
+const getRandomProdUrl = () => {
+  return PROD_API_BASE_URLS[Math.floor(Math.random() * PROD_API_BASE_URLS.length)];
+};
+
+// Set the API base URL based on the environment
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? getRandomProdUrl() : DEV_API_BASE_URL;
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -223,4 +238,4 @@ export function Login() {
       </div>
     </div>
   );
-} 
+}
