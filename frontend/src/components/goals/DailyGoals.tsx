@@ -24,8 +24,10 @@ interface NewGoal {
 }
 
 interface Goal {
-  id: string;
+  _id?: string;
   title: string;
+  description: string;
+  date: string;
   completed: boolean;
 }
 
@@ -80,12 +82,12 @@ const formatISTDate = (date: string) => {
   return format(istDate, 'EEEE, MMMM d, yyyy');
 };
 
-const DEFAULT_GOALS = [
+const DEFAULT_GOALS: Goal[] = [
   {
     title: 'Morning Meditation',
     description: 'Start your day with 10 minutes of mindful meditation',
-    date: '',
-    completed: false,
+    date: new Date().toISOString(),
+    completed: false
   },
   {
     title: 'Exercise',
@@ -140,7 +142,7 @@ const saveGoal = (goal) => {
 }
 
 const DailyGoals: React.FC = () => {
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>(DEFAULT_GOALS);
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
   const fetchUserGoals = async () => {
@@ -156,24 +158,19 @@ const DailyGoals: React.FC = () => {
     }
   };
 
-  const saveGoalToDatabase = async (goal: Goal) => {
+  const saveGoalToDatabase = async (goal: Goal): Promise<void> => {
     if (!isLoggedIn) return;
-    
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      await fetch('http://localhost:5000/api/goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(goal)
-      });
-    } catch (error) {
-      console.error('Error saving goal:', error);
-    }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    await fetch('http://localhost:5000/api/goals', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(goal)
+    });
   };
 
   useEffect(() => {

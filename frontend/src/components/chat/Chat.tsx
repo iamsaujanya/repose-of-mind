@@ -258,6 +258,31 @@ const Chat: React.FC = () => {
     setMessages(prev => [...prev, botMessage]);
   };
 
+  const saveChatToDatabase = async (message: ChatMessage): Promise<void> => {
+    if (!isLoggedIn) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    await fetch('http://localhost:5000/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(message)
+    });
+  };
+
+  const handleMessage = (messageContent: string) => {
+    const newMessage: ChatMessage = {
+      content: messageContent,
+      sender: 'user',
+      timestamp: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, newMessage]);
+    saveChatToDatabase(newMessage);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-card rounded-lg shadow-lg h-[calc(100vh-12rem)]">

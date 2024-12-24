@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
 interface JournalEntry {
-  id: string;
+  _id?: string;
   title: string;
   content: string;
   mood: string;
@@ -112,7 +112,7 @@ const Journal: React.FC = () => {
   };
 
   const getEntriesByDate = (date: string): JournalEntry[] => {
-    return entries.filter(entry => entry.date === date);
+    return entries.filter(entry => entry.date.startsWith(date));
   };
 
   const getMoodStats = (): MoodStats => {
@@ -199,6 +199,24 @@ const Journal: React.FC = () => {
       localStorage.setItem('tempJournalData', '[]');
     }
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const loadEntries = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await fetch('http://localhost:5000/api/journal', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await response.json();
+          setEntries(data);
+        }
+      } catch (error) {
+        console.error('Error loading entries:', error);
+      }
+    };
+    loadEntries();
+  }, []);
 
   if (!isLoggedIn && !localStorage.getItem('tempJournalData')) {
     navigate('/login');
