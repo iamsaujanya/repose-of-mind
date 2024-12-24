@@ -10,8 +10,8 @@ interface Message {
 
 interface ChatMessage {
   id?: string;
-  sender: string;
   content: string;
+  sender: string;
   timestamp: string;
 }
 
@@ -120,12 +120,12 @@ const Chat: React.FC = () => {
         {
           content: data.userMessage.content || messageText,
           sender: 'user',
-          timestamp: new Date(data.userMessage.timestamp),
+          timestamp: new Date(data.userMessage.timestamp).toISOString(),
         },
         {
           content: data.botMessage.content || "I'm having trouble understanding. Could you rephrase that?",
           sender: 'bot',
-          timestamp: new Date(data.botMessage.timestamp),
+          timestamp: new Date(data.botMessage.timestamp).toISOString(),
         },
       ]);
     } catch (error: any) {
@@ -137,7 +137,7 @@ const Chat: React.FC = () => {
         {
           content: messageText,
           sender: 'user',
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         },
       ]);
     } finally {
@@ -193,7 +193,7 @@ const Chat: React.FC = () => {
     const welcomeMessage = {
       sender: 'bot',
       message: 'Hello! How can I help you today?',
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     };
     
     if (isLoggedIn) {
@@ -238,6 +238,24 @@ const Chat: React.FC = () => {
 
   const displayMessage = (message: ChatMessage) => {
     setMessages(prev => [...prev, message]);
+  };
+
+  const handleNewMessage = (content: string) => {
+    const newMessage: ChatMessage = {
+      content,
+      sender: 'user',
+      timestamp: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, newMessage]);
+  };
+
+  const handleBotResponse = (response: string) => {
+    const botMessage: ChatMessage = {
+      content: response,
+      sender: 'bot',
+      timestamp: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, botMessage]);
   };
 
   return (
@@ -300,7 +318,7 @@ const Chat: React.FC = () => {
               >
                 <p className="whitespace-pre-wrap">{message.content}</p>
                 <span className="text-xs opacity-70 mt-1 block">
-                  {message.timestamp.toLocaleTimeString()}
+                  {new Date(message.timestamp).toLocaleTimeString()}
                 </span>
               </div>
             </div>

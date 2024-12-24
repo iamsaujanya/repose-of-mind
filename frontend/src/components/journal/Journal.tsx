@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
 interface JournalEntry {
-  _id?: string;
+  id: string;
   title: string;
   content: string;
   mood: string;
@@ -149,6 +149,7 @@ const Journal: React.FC = () => {
         content,
         mood,
         date: entryDate.toISOString(),
+        id: Date.now().toString()
       };
 
       await saveJournalEntry(newEntry);

@@ -24,10 +24,8 @@ interface NewGoal {
 }
 
 interface Goal {
-  _id?: string;
+  id: string;
   title: string;
-  description: string;
-  date: string;
   completed: boolean;
 }
 
@@ -159,8 +157,12 @@ const DailyGoals: React.FC = () => {
   };
 
   const saveGoalToDatabase = async (goal: Goal) => {
+    if (!isLoggedIn) return;
+    
     try {
       const token = localStorage.getItem('token');
+      if (!token) return;
+      
       await fetch('http://localhost:5000/api/goals', {
         method: 'POST',
         headers: {
