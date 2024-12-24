@@ -111,8 +111,9 @@ const Journal: React.FC = () => {
     }
   };
 
-  const getEntriesByDate = (date: string): JournalEntry[] => {
-    return entries.filter(entry => entry.date.startsWith(date));
+  const getEntriesByDate = (selectedDate: Date): JournalEntry[] => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    return entries.filter(entry => entry.date.startsWith(dateStr));
   };
 
   const getMoodStats = (): MoodStats => {
@@ -367,7 +368,7 @@ const formatDate = (date) => {
           ) : selectedEntries.length > 0 ? (
             <div className="space-y-4">
               {selectedEntries.map((entry) => (
-                <div key={entry.id} className="bg-card p-4 rounded-lg shadow-lg mb-4">
+                <div key={entry._id} className="bg-card p-4 rounded-lg shadow-lg mb-4">
                   <h3 className="text-xl font-semibold mb-2">{entry.title}</h3>
                   <p className="text-sm text-muted-foreground mb-2">
                     {format(utcToZonedTime(new Date(entry.date), 'Asia/Kolkata'), 'PPpp')}

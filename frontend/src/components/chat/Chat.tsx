@@ -273,14 +273,18 @@ const Chat: React.FC = () => {
     });
   };
 
-  const handleMessage = (messageContent: string) => {
+  const handleMessage = async (messageContent: string) => {
     const newMessage: ChatMessage = {
       content: messageContent,
       sender: 'user',
       timestamp: new Date().toISOString()
     };
+    
     setMessages(prev => [...prev, newMessage]);
-    saveChatToDatabase(newMessage);
+
+    if (!localStorage.getItem('token')) {
+      localStorage.setItem('tempChatHistory', JSON.stringify([...messages, newMessage]));
+    }
   };
 
   return (

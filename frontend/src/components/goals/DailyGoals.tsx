@@ -27,8 +27,8 @@ interface Goal {
   _id?: string;
   title: string;
   description: string;
-  date: string;
   completed: boolean;
+  date?: string;
 }
 
 const defaultGoals: Goal[] = [
@@ -142,20 +142,17 @@ const saveGoal = (goal) => {
 }
 
 const DailyGoals: React.FC = () => {
-  const [goals, setGoals] = useState<Goal[]>(DEFAULT_GOALS);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
-  const fetchUserGoals = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/goals', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching goals:', error);
-      return [];
-    }
+  const fetchUserGoals = async (): Promise<Goal[]> => {
+    const token = localStorage.getItem('token');
+    if (!token) return [];
+    
+    const response = await fetch('http://localhost:5000/api/goals', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.json();
   };
 
   const saveGoalToDatabase = async (goal: Goal): Promise<void> => {
@@ -365,6 +362,14 @@ const DailyGoals: React.FC = () => {
     setNewGoal({ ...newGoal, [e.target.name]: e.target.value });
   };
 
+  const handleToggleGoal = (id: string) => {
+    setGoals(prev => 
+      prev.map(goal => 
+        goal._id === id ? { ...goal, completed: !goal.completed } : goal
+      )
+    );
+  };
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
@@ -420,7 +425,7 @@ const DailyGoals: React.FC = () => {
               <div className="pt-1">
                 <Checkbox
                   checked={goal.completed}
-                  onCheckedChange={() => toggleGoalCompletion(goal._id, goal.completed)}
+                  onCheckedChange={() => handleToggleGoal(goal._id)}
                   className="w-5 h-5"
                 />
               </div>
