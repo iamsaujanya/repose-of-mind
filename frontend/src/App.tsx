@@ -4,14 +4,14 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
-import { Journal } from './components/journal/Journal';
+import Journal from "./components/journal/Journal";
 import { Home } from './components/home/Home';
 import { Chat } from './components/chat/Chat';
 import { Privacy } from './components/pages/Privacy';
 import { Terms } from './components/pages/Terms';
 import { Mindfulness } from './components/mindfulness/Mindfulness';
 import { Settings } from './components/settings/Settings';
-import { DailyGoals } from './components/goals/DailyGoals';
+import DailyGoals from "./components/goals/DailyGoals";
 
 function App() {
   return (

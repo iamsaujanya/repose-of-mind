@@ -24,10 +24,11 @@ interface NewGoal {
 }
 
 interface Goal {
-  id?: string;
-  content: string;
+  _id?: string;
+  title: string;
+  description: string;
+  date: string;
   completed: boolean;
-  userId?: string;
 }
 
 const defaultGoals: Goal[] = [
@@ -35,31 +36,37 @@ const defaultGoals: Goal[] = [
     title: 'Morning Meditation',
     description: 'Start your day with 10 minutes of mindful meditation',
     date: '',
+    completed: false,
   },
   {
     title: 'Exercise',
     description: '30 minutes of physical activity',
     date: '',
+    completed: false,
   },
   {
     title: 'Gratitude Journal',
     description: 'Write down three things you are grateful for today',
     date: '',
+    completed: false,
   },
   {
     title: 'Healthy Breakfast',
     description: 'Start your day with a nutritious meal',
     date: '',
+    completed: false,
   },
   {
     title: 'Reading',
     description: 'Read for at least 20 minutes',
     date: '',
+    completed: false,
   },
   {
     title: 'Water Intake',
     description: 'Drink 8 glasses of water throughout the day',
     date: '',
+    completed: false,
   }
 ];
 
@@ -80,31 +87,37 @@ const DEFAULT_GOALS = [
     title: 'Morning Meditation',
     description: 'Start your day with 10 minutes of mindful meditation',
     date: '',
+    completed: false,
   },
   {
     title: 'Exercise',
     description: '30 minutes of physical activity',
     date: '',
+    completed: false,
   },
   {
     title: 'Gratitude Journal',
     description: 'Write down three things you are grateful for today',
     date: '',
+    completed: false,
   },
   {
     title: 'Healthy Breakfast',
     description: 'Start your day with a nutritious meal',
     date: '',
+    completed: false,
   },
   {
     title: 'Reading',
     description: 'Read for at least 20 minutes',
     date: '',
+    completed: false,
   },
   {
     title: 'Water Intake',
     description: 'Drink 8 glasses of water throughout the day',
     date: '',
+    completed: false,
   }
 ];
 
@@ -132,45 +145,32 @@ const DailyGoals: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
-  const fetchUserGoals = async (): Promise<Goal[]> => {
+  const fetchUserGoals = async () => {
     try {
-      if (isLoggedIn) {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/goals', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = await response.json();
-        return data.goals;
-      }
-      return JSON.parse(localStorage.getItem('tempGoals') || 'null') || defaultGoals;
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/goals', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return await response.json();
     } catch (error) {
       console.error('Error fetching goals:', error);
-      return defaultGoals;
+      return [];
     }
   };
 
-  const saveGoalToDatabase = async (goal: Goal): Promise<void> => {
+  const saveGoalToDatabase = async (goal: Goal) => {
     try {
-      if (isLoggedIn) {
-        const token = localStorage.getItem('token');
-        await fetch('http://localhost:5000/api/goals', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(goal)
-        });
-      } else {
-        const currentGoals = JSON.parse(localStorage.getItem('tempGoals') || '[]');
-        currentGoals.push({...goal, id: Date.now().toString()});
-        localStorage.setItem('tempGoals', JSON.stringify(currentGoals));
-      }
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/goals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(goal)
+      });
     } catch (error) {
       console.error('Error saving goal:', error);
-      throw error;
     }
   };
 

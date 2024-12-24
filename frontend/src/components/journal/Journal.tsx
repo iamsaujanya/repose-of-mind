@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
 interface JournalEntry {
-  id?: string;
+  _id?: string;
   title: string;
   content: string;
   mood: string;
@@ -21,9 +21,7 @@ interface JournalState {
 }
 
 interface MoodStats {
-  happy: number;
-  sad: number;
-  neutral: number;
+  [key: string]: number;
 }
 
 type MoodOption = {
@@ -55,6 +53,7 @@ const Journal: React.FC = () => {
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('neutral');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
 
   // Check if user is logged in using JWT token
 
@@ -112,9 +111,8 @@ const Journal: React.FC = () => {
     }
   };
 
-  const getEntriesByDate = (date: Date): JournalEntry[] => {
-    const formattedDate = formatDate(date);
-    return journalState.entries.filter(entry => entry.date === formattedDate);
+  const getEntriesByDate = (date: string): JournalEntry[] => {
+    return entries.filter(entry => entry.date === date);
   };
 
   const getMoodStats = (): MoodStats => {

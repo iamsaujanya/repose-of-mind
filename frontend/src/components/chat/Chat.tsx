@@ -8,13 +8,21 @@ interface Message {
   timestamp: Date;
 }
 
-export function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+interface ChatMessage {
+  id?: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+}
+
+const Chat: React.FC = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const isLoggedIn = Boolean(localStorage.getItem('token'));
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -212,6 +220,26 @@ export function Chat() {
     }
   }
 
+  const saveChatHistory = async (messages: ChatMessage[]) => {
+    if (isLoggedIn) {
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ messages })
+      });
+    } else {
+      localStorage.setItem('tempChatHistory', JSON.stringify(messages));
+    }
+  };
+
+  const displayMessage = (message: ChatMessage) => {
+    setMessages(prev => [...prev, message]);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-card rounded-lg shadow-lg h-[calc(100vh-12rem)]">
@@ -312,3 +340,5 @@ export function Chat() {
     </div>
   );
 }
+
+export default Chat;
