@@ -23,6 +23,46 @@ interface NewGoal {
   date: string;
 }
 
+interface Goal {
+  id?: string;
+  content: string;
+  completed: boolean;
+  userId?: string;
+}
+
+const defaultGoals: Goal[] = [
+  {
+    title: 'Morning Meditation',
+    description: 'Start your day with 10 minutes of mindful meditation',
+    date: '',
+  },
+  {
+    title: 'Exercise',
+    description: '30 minutes of physical activity',
+    date: '',
+  },
+  {
+    title: 'Gratitude Journal',
+    description: 'Write down three things you are grateful for today',
+    date: '',
+  },
+  {
+    title: 'Healthy Breakfast',
+    description: 'Start your day with a nutritious meal',
+    date: '',
+  },
+  {
+    title: 'Reading',
+    description: 'Read for at least 20 minutes',
+    date: '',
+  },
+  {
+    title: 'Water Intake',
+    description: 'Drink 8 glasses of water throughout the day',
+    date: '',
+  }
+];
+
 // Function to get IST date string
 const getISTDateString = () => {
   const istDate = utcToZonedTime(new Date(), 'Asia/Kolkata');
@@ -68,8 +108,80 @@ const DEFAULT_GOALS = [
   }
 ];
 
-export function DailyGoals() {
-  const [goals, setGoals] = useState<DailyGoal[]>([]);
+const initGoals = () => {
+  if (isLoggedIn) {
+      // Fetch user's saved goals
+      return fetchUserGoals();
+  } else {
+      // Use default goals from localStorage or set defaults
+      return JSON.parse(localStorage.getItem('tempGoals')) || defaultGoals;
+  }
+}
+
+const saveGoal = (goal) => {
+  if (isLoggedIn) {
+      saveGoalToDatabase(goal);
+  } else {
+      const currentGoals = JSON.parse(localStorage.getItem('tempGoals')) || [];
+      currentGoals.push(goal);
+      localStorage.setItem('tempGoals', JSON.stringify(currentGoals));
+  }
+}
+
+const DailyGoals: React.FC = () => {
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const isLoggedIn = Boolean(localStorage.getItem('token'));
+
+  const fetchUserGoals = async (): Promise<Goal[]> => {
+    try {
+      if (isLoggedIn) {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/goals', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data.goals;
+      }
+      return JSON.parse(localStorage.getItem('tempGoals') || 'null') || defaultGoals;
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      return defaultGoals;
+    }
+  };
+
+  const saveGoalToDatabase = async (goal: Goal): Promise<void> => {
+    try {
+      if (isLoggedIn) {
+        const token = localStorage.getItem('token');
+        await fetch('http://localhost:5000/api/goals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(goal)
+        });
+      } else {
+        const currentGoals = JSON.parse(localStorage.getItem('tempGoals') || '[]');
+        currentGoals.push({...goal, id: Date.now().toString()});
+        localStorage.setItem('tempGoals', JSON.stringify(currentGoals));
+      }
+    } catch (error) {
+      console.error('Error saving goal:', error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const loadGoals = async () => {
+      const loadedGoals = await fetchUserGoals();
+      setGoals(loadedGoals);
+    };
+    loadGoals();
+  }, []);
+
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: '',
@@ -341,4 +453,6 @@ export function DailyGoals() {
       </div>
     </div>
   );
-} 
+}
+
+export default DailyGoals;

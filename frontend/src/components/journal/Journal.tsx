@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useNavigate } from 'react-router-dom';
@@ -6,13 +6,25 @@ import { AlertCircle, Loader2, Smile, Frown, Meh, Brain, PartyPopper } from 'luc
 import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
-type JournalEntry = {
-  _id: string;
+interface JournalEntry {
+  id?: string;
   title: string;
   content: string;
   mood: string;
   date: string;
-};
+}
+
+interface JournalState {
+  entries: JournalEntry[];
+  loading: boolean;
+  error: string | null;
+}
+
+interface MoodStats {
+  happy: number;
+  sad: number;
+  neutral: number;
+}
 
 type MoodOption = {
   value: string;
@@ -29,134 +41,93 @@ const moodOptions: MoodOption[] = [
   { value: 'excited', label: 'Excited', icon: <PartyPopper className="w-5 h-5" />, color: 'text-purple-500' },
 ];
 
-export function Journal() {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const Journal: React.FC = () => {
+  const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const isLoggedIn = Boolean(localStorage.getItem('token'));
+
+  const [journalState, setJournalState] = useState<JournalState>({
+    entries: [],
+    loading: false,
+    error: null
+  });
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('neutral');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchEntries();
-  }, []);
+  // Check if user is logged in using JWT token
 
-  const fetchEntries = async () => {
+  const fetchJournalData = async (): Promise<JournalEntry[]> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
+      if (isLoggedIn) {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/journal', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch entries');
+        const data = await response.json();
+        return data.entries;
+      } else {
+        const tempData = localStorage.getItem('tempJournalData');
+        return tempData ? JSON.parse(tempData) : [];
       }
-
-      const response = await fetch('http://localhost:5000/api/journal', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          navigate('/login');
-          return;
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch entries');
-      }
-
-      const data = await response.json();
-      setEntries(data);
-      setError('');
-    } catch (err: any) {
-      console.error('Error fetching entries:', err);
-      setError(err.message || 'Failed to load entries. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching journal data:', error);
+      throw error;
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
-      // Set the time of selectedDate to noon to avoid timezone issues
-      const entryDate = new Date(selectedDate);
-      entryDate.setHours(12, 0, 0, 0);
-
-      const response = await fetch('http://localhost:5000/api/journal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title,
-          content,
-          mood,
-          date: entryDate.toISOString(),
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          navigate('/login');
-          return;
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create entry');
-      }
-
-      await fetchEntries();
-      setTitle('');
-      setContent('');
-      setMood('neutral');
-      setError('');
-    } catch (err: any) {
-      console.error('Error creating entry:', err);
-      setError(err.message || 'Failed to save entry. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const getEntriesForDate = (date: Date) => {
-    return entries.filter((entry) => {
-      const entryDate = utcToZonedTime(new Date(entry.date), 'Asia/Kolkata');
-      const compareDate = utcToZonedTime(date, 'Asia/Kolkata');
-      
-      return (
-        entryDate.getFullYear() === compareDate.getFullYear() &&
-        entryDate.getMonth() === compareDate.getMonth() &&
-        entryDate.getDate() === compareDate.getDate()
-      );
-    });
-  };
-
-  const getMoodStats = () => {
-    const stats = {
-      happy: 0,
-      sad: 0,
-      neutral: 0,
-      anxious: 0,
-      excited: 0,
+  const saveJournalEntry = async (entry: JournalEntry): Promise<void> => {
+    const formattedEntry = {
+      ...entry,
+      date: formatDate(new Date(entry.date))
     };
 
-    entries.forEach((entry) => {
-      stats[entry.mood as keyof typeof stats]++;
-    });
+    try {
+      if (isLoggedIn) {
+        const token = localStorage.getItem('token');
+        await fetch('http://localhost:5000/api/journal', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(formattedEntry)
+        });
+      } else {
+        const tempEntries = JSON.parse(localStorage.getItem('tempJournalData') || '[]');
+        tempEntries.push({...formattedEntry, id: Date.now().toString()});
+        localStorage.setItem('tempJournalData', JSON.stringify(tempEntries));
+      }
+      
+      // Refresh entries after saving
+      const updatedEntries = await fetchJournalData();
+      setJournalState(prev => ({ ...prev, entries: updatedEntries }));
+    } catch (error) {
+      console.error('Error saving entry:', error);
+      throw error;
+    }
+  };
 
-    return stats;
+  const getEntriesByDate = (date: Date): JournalEntry[] => {
+    const formattedDate = formatDate(date);
+    return journalState.entries.filter(entry => entry.date === formattedDate);
+  };
+
+  const getMoodStats = (): MoodStats => {
+    const entries = journalState.entries;
+    return entries.reduce((stats, entry) => {
+      stats[entry.mood] = (stats[entry.mood] || 0) + 1;
+      return stats;
+    }, {} as MoodStats);
+  };
+
+  const getEntriesForDate = (date: Date): JournalEntry[] => {
+    const formattedDate = date.toISOString().split('T')[0];
+    return journalState.entries.filter(entry => entry.date === formattedDate);
   };
 
   const getMoodIcon = (moodValue: string) => {
@@ -166,6 +137,79 @@ export function Journal() {
   const getMoodColor = (moodValue: string) => {
     return moodOptions.find(option => option.value === moodValue)?.color || '';
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const entryDate = new Date(selectedDate);
+      entryDate.setHours(12, 0, 0, 0);
+
+      const newEntry: JournalEntry = {
+        title,
+        content,
+        mood,
+        date: entryDate.toISOString(),
+      };
+
+      await saveJournalEntry(newEntry);
+      const entries = await fetchJournalData();
+      setJournalState({
+        entries,
+        loading: false,
+        error: null
+      });
+      setTitle('');
+      setContent('');
+      setMood('neutral');
+    } catch (error) {
+      console.error('Error creating entry:', error);
+      setJournalState(prev => ({
+        ...prev,
+        error: 'Failed to save entry. Please try again.'
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadJournalData = async () => {
+      setJournalState(prev => ({ ...prev, loading: true }));
+      try {
+        const entries = await fetchJournalData();
+        setJournalState({
+          entries,
+          loading: false,
+          error: null
+        });
+      } catch (error) {
+        setJournalState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'Failed to load journal entries'
+        }));
+      }
+    };
+    loadJournalData();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn && !localStorage.getItem('tempJournalData')) {
+      localStorage.setItem('tempJournalData', '[]');
+    }
+  }, [isLoggedIn]);
+
+  if (!isLoggedIn && !localStorage.getItem('tempJournalData')) {
+    navigate('/login');
+    return null;
+  }
+
+  // Use proper date formatting
+const formatDate = (date) => {
+  return new Date(date).toISOString().split('T')[0];
+}
 
   const selectedEntries = getEntriesForDate(selectedDate);
   const moodStats = getMoodStats();
@@ -292,13 +336,13 @@ export function Journal() {
           <h2 className="text-2xl font-bold mb-4">
             Entries for {selectedDate.toLocaleDateString()}
           </h2>
-          {error && (
+          {journalState.error && (
             <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md flex items-center gap-2 mb-4">
               <AlertCircle className="w-4 h-4" />
-              {error}
+              {journalState.error}
             </div>
           )}
-          {loading ? (
+          {journalState.loading ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
               Loading entries...
@@ -306,7 +350,7 @@ export function Journal() {
           ) : selectedEntries.length > 0 ? (
             <div className="space-y-4">
               {selectedEntries.map((entry) => (
-                <div key={entry._id} className="bg-card p-4 rounded-lg shadow-lg mb-4">
+                <div key={entry.id} className="bg-card p-4 rounded-lg shadow-lg mb-4">
                   <h3 className="text-xl font-semibold mb-2">{entry.title}</h3>
                   <p className="text-sm text-muted-foreground mb-2">
                     {format(utcToZonedTime(new Date(entry.date), 'Asia/Kolkata'), 'PPpp')}
@@ -326,4 +370,6 @@ export function Journal() {
       </div>
     </div>
   );
-} 
+}
+
+export default Journal;

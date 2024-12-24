@@ -22,6 +22,7 @@ export function Chat() {
 
   useEffect(() => {
     fetchChatHistory();
+    initChat();
   }, []);
 
   useEffect(() => {
@@ -179,6 +180,38 @@ export function Chat() {
     }
   };
 
+  // Initialize chat with welcome message
+  const initChat = () => {
+    const welcomeMessage = {
+      sender: 'bot',
+      message: 'Hello! How can I help you today?',
+      timestamp: new Date()
+    };
+    
+    if (isLoggedIn) {
+        // Save to database
+        saveChatHistory([welcomeMessage]);
+    } else {
+        // Save to localStorage
+        localStorage.setItem('tempChatHistory', JSON.stringify([welcomeMessage]));
+    }
+    
+    displayMessage(welcomeMessage);
+  }
+
+  // Handle chat messages
+  const handleChat = (message) => {
+    if (isLoggedIn) {
+        // Save to database
+        saveChatToDatabase(message);
+    } else {
+        // Save to localStorage
+        const history = JSON.parse(localStorage.getItem('tempChatHistory')) || [];
+        history.push(message);
+        localStorage.setItem('tempChatHistory', JSON.stringify(history));
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-card rounded-lg shadow-lg h-[calc(100vh-12rem)]">
@@ -278,4 +311,4 @@ export function Chat() {
       </div>
     </div>
   );
-} 
+}
